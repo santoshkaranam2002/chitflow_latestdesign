@@ -1,0 +1,16 @@
+<app-page-header title="Activity Log" subtitle="Payments, auctions and other important actions" />
+
+@if (error()) {
+  <div class="card card--static act-err">{{ error() }} <button class="text-btn" type="button" (click)="load()">Try again</button></div>
+}
+@for (r of rows(); track r.id; let i = $index) {
+    <div class="card card--static row reveal" [style.--i]="i < 12 ? i : 0">
+      <div class="row-gap">
+        <app-icon-tile [icon]="icon(r.entity)" bg="#ffe6d8" color="#f26a1b" />
+        <div class="act-info"><b>{{ r.action }}</b><span class="muted">{{ r.detail }}</span></div>
+      </div>
+      <div class="act-info act-info--end"><span>{{ r.actor }}</span><span class="muted">{{ r.time | stamp }}</span></div>
+    </div>
+  } @empty {
+    <app-empty-state icon="file" title="No activity yet" text="Payments, auctions and group changes will be listed here." />
+  }

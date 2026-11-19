@@ -1,0 +1,5 @@
+@use 'global' as *;
+:host { display: block; }
+.div-hero { text-align: center; display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; &__amount { font-size: 30px; letter-spacing: -0.03em; } }
+.div-info { display: flex; flex-direction: column; gap: 3px; b { font-size: 13px; } &--end { align-items: flex-end; } }
+select.input { margin-bottom: 4px; }

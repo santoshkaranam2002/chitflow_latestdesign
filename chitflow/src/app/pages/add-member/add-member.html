@@ -1,0 +1,80 @@
+<app-page-header title="Add Member" subtitle="Add someone to your chit group" />
+
+@if (created(); as c) {
+  <div class="card card--static am-done">
+    <div class="am-done__tick"><app-icon name="check" [size]="26" [stroke]="3" /></div>
+    <b>{{ c.name }} was added</b>
+    <span class="muted">Share these login details with the member. They sign in from the Member tab.</span>
+    <div class="info-row"><span>Login email</span><b>{{ c.email }}</b></div>
+    <div class="info-row"><span>Password</span><b>{{ c.password }}</b></div>
+    <button class="btn btn--soft" type="button" (click)="copyLogin()"><app-icon name="copy" [size]="16" /> {{ copied() ? 'Copied!' : 'Copy login details' }}</button>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn" type="button" (click)="done()">Done</button>
+} @else {
+  @if (groupSel()) {
+    <div class="chips am-mode">
+      <button class="chip" type="button" [class.chip--active]="mode() === 'new'" (click)="mode.set('new')">New member</button>
+      <button class="chip" type="button" [class.chip--active]="mode() === 'existing'" (click)="mode.set('existing')">Existing member</button>
+    </div>
+  }
+
+  <label class="label">Assign to group {{ mode() === 'new' ? '(optional)' : '' }}</label>
+  <select class="input" [ngModel]="groupSel() || ''" (ngModelChange)="picked.set($event)">
+    @if (mode() === 'new') { <option value="">No group yet</option> }
+    @for (g of store.groups(); track g.id) { <option [value]="g.id">{{ g.name }}</option> }
+  </select>
+
+  @if (mode() === 'new') {
+    <div class="am-preview">
+      <app-photo-picker [photo]="photo()" (photoChange)="photo.set($event)" [initials]="initials() || '?'" label="Member photo (optional)" />
+      <span class="muted">{{ name() || 'New member' }}</span>
+    </div>
+
+    <label class="label">Full name</label>
+    <div class="input-group"><app-icon name="user" [size]="18" /><input placeholder="Member name" [ngModel]="name()" (ngModelChange)="name.set($event)" /></div>
+
+    <label class="label">Mobile number</label>
+    <div class="input-group"><span class="am-prefix">+91</span><input type="tel" placeholder="10-digit number" [ngModel]="mobile()" (ngModelChange)="mobile.set($event)" /></div>
+
+    <label class="label">Login email (optional)</label>
+    <div class="input-group"><app-icon name="mail" [size]="18" /><input type="email" placeholder="member&#64;email.com" [ngModel]="email()" (ngModelChange)="email.set($event)" /></div>
+
+    <label class="label">Login password (min 6 characters)</label>
+    <div class="input-group">
+      <app-icon name="lock" [size]="18" />
+      <input [type]="showPassword() ? 'text' : 'password'" placeholder="Set a password for the member" [ngModel]="password()" (ngModelChange)="password.set($event)" autocomplete="new-password" />
+      <button class="icon-btn" type="button" (click)="showPassword.set(!showPassword())"><app-icon [name]="showPassword() ? 'eyeoff' : 'eye'" [size]="18" /></button>
+    </div>
+
+    <label class="label">Address (optional)</label>
+    <input class="input" [ngModel]="address()" (ngModelChange)="address.set($event)" />
+    <label class="label">Nominee (optional)</label>
+    <input class="input" [ngModel]="nominee()" (ngModelChange)="nominee.set($event)" />
+    <label class="label">Bank account (optional)</label>
+    <input class="input" [ngModel]="bank()" (ngModelChange)="bank.set($event)" />
+  } @else {
+    <label class="label">Find a member</label>
+    <div class="input-group"><app-icon name="search" [size]="18" /><input placeholder="Search by name or phone" [ngModel]="existingSearch()" (ngModelChange)="existingSearch.set($event)" /></div>
+    <div class="am-list">
+      @for (m of candidates(); track m.id) {
+        <button type="button" class="card row am-pick" [class.am-pick--on]="existingId() === m.id" (click)="existingId.set(m.id)">
+          <span class="row-gap"><app-avatar size="sm" [photo]="m.photo" [initials]="m.initials" /><span class="am-pick__t"><b>{{ m.name }}</b><span class="muted">{{ m.phone }}</span></span></span>
+          @if (existingId() === m.id) { <app-icon name="check" [size]="18" /> }
+        </button>
+      } @empty { <p class="muted am-none">No other members available to add.</p> }
+    </div>
+  }
+
+  @if (groupSel()) {
+    <label class="label">Chit number (optional – next free number if empty)</label>
+    <input class="input" type="number" min="1" [ngModel]="chitNo()" (ngModelChange)="chitNo.set($event ? +$event : null)" />
+  }
+
+  @if (error()) { <p class="form-error" role="alert"><app-icon name="alert" [size]="14" /> {{ error() }}</p> }
+
+  <div class="spacer"></div>
+  <button class="btn" [class.btn--loading]="saving()" type="button" (click)="mode() === 'new' ? createNew() : assignExisting()">
+    @if (saving()) { <span class="spin"></span> Saving… } @else { <app-icon name="plus" [size]="18" /> {{ mode() === 'new' ? 'Add Member' : 'Add to Group' }} }
+  </button>
+}

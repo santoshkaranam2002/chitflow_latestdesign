@@ -1,0 +1,50 @@
+<app-page-header title="My Chit Groups" subtitle="Groups you are registered in" />
+
+<section class="summary">
+  <div class="summary__head">
+    <span class="summary__icon"><app-icon name="wallet" [size]="22" /></span>
+    <div>
+      <span class="summary__label">Total chit value</span>
+      <b class="summary__value">₹<span [appCountUp]="totalValue()"></span></b>
+    </div>
+  </div>
+  <div class="summary__tiles">
+    <div class="summary__tile summary__tile--orange"><app-icon name="grid" [size]="16" /><b>{{ groups().length }}</b><span>Groups</span></div>
+    <div class="summary__tile summary__tile--purple"><app-icon name="flame" [size]="16" /><b>{{ active() }}</b><span>Active</span></div>
+    <div class="summary__tile summary__tile--green"><app-icon name="coin" [size]="16" /><b>₹{{ monthly() | inr }}</b><span>Per month</span></div>
+  </div>
+</section>
+
+<div class="groups-list">
+  @for (r of groups(); track r.g.id; let i = $index) {
+    <a class="card gc reveal" [style.--i]="i" [style.--accent]="r.tone.color" routerLink="/member/groups/details" [queryParams]="{ id: r.g.id }">
+      <div class="gc__top">
+        <app-icon-tile [icon]="r.tone.icon" [bg]="r.tone.bg" [color]="r.tone.color" [size]="50" />
+        <div class="gc__title">
+          <div class="gc__name"><b>{{ r.g.name }}</b><span class="gc__tag">Chit No. {{ r.chit ?? '—' }}</span></div>
+          <span class="gc__label">Chit amount</span>
+          <b class="gc__amount">₹{{ r.g.chitValue | inr }}</b>
+        </div>
+        <app-progress-ring [value]="r.progress" [size]="58" [thickness]="6" />
+      </div>
+
+      <div class="gc__stats">
+        <div><span>Monthly</span><b>₹{{ r.g.monthlyInstallment | inr }}</b></div>
+        <div><span>Members</span><b>{{ r.g.totalMembers }}</b></div>
+        <div><span>Month</span><b>{{ r.g.currentMonth }}/{{ r.g.durationMonths }}</b></div>
+      </div>
+
+      @if (r.g.startDate) { <div class="gc__dates"><span>Started {{ r.g.startDate | date: 'dd MMM yy' }}</span></div> }
+
+      <div class="gc__foot">
+        <span class="gc__pills">
+          <span class="pill" [class.pill--ok]="r.state === 'Active'" [class.pill--up]="r.state === 'Completed'" [class.pill--bad]="r.state === 'Left'">{{ r.state }}</span>
+          @if (r.next) { <span class="pill" [class]="'pill ' + pill(r.next.status)">Auction · {{ r.next.status }}</span> }
+        </span>
+        <span class="gc__go">View <app-icon name="arrow" [size]="14" [stroke]="2.4" /></span>
+      </div>
+    </a>
+  } @empty {
+    <app-empty-state icon="users" title="No groups yet" text="Your organizer has not added you to a chit group yet." />
+  }
+</div>

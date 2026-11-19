@@ -1,0 +1,38 @@
+<app-page-header title="My Profile" />
+
+<div class="mpr-head">
+  <div class="mpr-head__cover"></div>
+  <div class="mpr-head__avatar">
+    <app-avatar [photo]="user().photo || me()?.photo" [initials]="me()?.initials || user().initials" size="xl" [primary]="true" />
+    <span class="pf-cam"><app-photo-picker [photo]="user().photo || ''" [initials]="user().initials" [compact]="true" (changed)="savePhoto($event)" /></span>
+  </div>
+  <b class="mpr-head__name">{{ me()?.name || user().name }}</b>
+  <span class="muted">{{ me()?.code || 'Member' }}@if (me()?.joinDate) { · since {{ me()!.joinDate | date: 'MMM yyyy' }} }</span>
+  @if (me(); as m) { <span class="pill pill--ok">{{ m.status }}</span> }
+</div>
+
+<div class="mpr-cols">
+  <div>
+    <div class="section-title">Personal details</div>
+    <label class="label">Full name</label>
+    <div class="input-group"><app-icon name="user" [size]="18" /><input [value]="me()?.name || user().name" disabled /></div>
+    <label class="label">Phone number</label>
+    <div class="input-group"><app-icon name="phone" [size]="18" /><input type="tel" [value]="me()?.phone || user().phone || ''" disabled /></div>
+    <label class="label">Email address</label>
+    <div class="input-group"><app-icon name="mail" [size]="18" /><input type="email" [value]="me()?.email || user().email || ''" disabled /></div>
+    <label class="label">Address</label>
+    <div class="input-group"><app-icon name="pin" [size]="18" /><input [value]="me()?.address || ''" placeholder="Not provided" disabled /></div>
+    <p class="muted">Contact your organizer{{ user().orgName ? " (" + user().orgName + ")" : "" }} to update these details.</p>
+  </div>
+
+  <div>
+    <div class="section-title mpr-sec">Registered Chit Groups</div>
+    <div class="chips">
+      @for (r of groups(); track r.g.id) {
+        <span class="chip chip--active mpr-chip"><app-icon [name]="r.tone.icon" [size]="14" /> {{ r.g.name }} · {{ r.state }}</span>
+      } @empty { <span class="muted">Not registered in any group yet</span> }
+    </div>
+    <div class="spacer"></div>
+    <button class="btn btn--soft" type="button" (click)="logout()"><app-icon name="logout" [size]="18" /> Log out</button>
+  </div>
+</div>

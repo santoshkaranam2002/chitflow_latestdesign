@@ -1,0 +1,25 @@
+<app-page-header title="Dividends" subtitle="Your share after each auction" />
+
+<div class="hero div-hero">
+  <span class="hero__sheen"></span>
+  <small>Total received</small>
+  <b class="div-hero__amount">₹<span [appCountUp]="total()"></span></b>
+</div>
+
+<select class="input" [ngModel]="groupFilter()" (ngModelChange)="groupFilter.set($event === 'All' ? 'All' : +$event)">
+  <option value="All">All groups</option>
+  @for (g of groups(); track g.id) { <option [value]="g.id">{{ g.name }}</option> }
+</select>
+
+<div class="section-title">Dividend history</div>
+@for (d of rows(); track d.id; let i = $index) {
+  <div class="card card--static row reveal" [style.--i]="i">
+    <div class="row-gap">
+      <app-icon-tile icon="coin" bg="#fff0c9" color="#d99a06" />
+      <div class="div-info"><b>{{ groupName(d.groupId) }}</b><span class="muted">Month {{ d.monthIndex }} </span></div>
+    </div>
+    <div class="div-info div-info--end"><b class="pos">₹{{ d.perMember | inr }}</b><span class="muted">your share</span></div>
+  </div>
+} @empty {
+  <app-empty-state icon="coin" title="No dividends yet" text="Your share appears here after an auction result is confirmed." />
+}

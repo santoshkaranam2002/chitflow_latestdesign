@@ -1,0 +1,17 @@
+<a class="card row payment-item" [routerLink]="link()" [queryParams]="{ id: payment().id }">
+  <div class="row-gap">
+    <app-icon-tile [icon]="tone().icon" [bg]="tone().bg" [color]="tone().color" />
+    <div class="payment-item__info">
+      <b class="payment-item__title">{{ title() }}</b>
+      <span class="muted">{{ subtitle() }}</span>
+    </div>
+  </div>
+  <div class="payment-item__amount">
+    <span [ngClass]="isPayout() ? 'neg' : 'pos'">{{ isPayout() ? '−' : '+' }} ₹{{ amount() | inr }}</span>
+    @if (due()) {
+      <span class="pill" [ngClass]="pill()">{{ status() }} · Due {{ payment().dueDate | date: 'dd MMM' }}</span>
+    } @else {
+      <span class="muted">{{ date() | date: 'dd MMM yyyy' }}</span>
+    }
+  </div>
+</a>

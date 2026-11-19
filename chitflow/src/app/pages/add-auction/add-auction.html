@@ -1,0 +1,38 @@
+<app-page-header [title]="editing() ? 'Edit Auction' : 'Add Auction'" [subtitle]="editing() ? 'Change the schedule' : 'Schedule the next bidding round'" />
+
+<div class="aa-summary">
+  <div><small>Chit value</small><b>₹{{ selected()?.chitValue | inr }}</b></div>
+  <div><small>Commission</small><b>₹{{ commissionAmount() | inr }}</b></div>
+  <div><small>Members</small><b>{{ selected() ? store.groupMembers(selected()!.id).length : 0 }}</b></div>
+</div>
+
+<label class="label">Select group</label>
+<select class="input" [ngModel]="group()" (ngModelChange)="pickGroup($event)" [disabled]="editing()">
+  @for (g of store.groups(); track g.id) { <option [ngValue]="g.id">{{ g.name }}</option> }
+</select>
+
+<div class="aa-grid">
+  <div><label class="label">Auction date</label><input class="input" type="date" [ngModel]="date()" (ngModelChange)="date.set($event)" /></div>
+  <div><label class="label">Start time</label><input class="input" type="time" [ngModel]="start()" (ngModelChange)="onStart($event)" /></div>
+</div>
+<div class="aa-grid">
+  <div><label class="label">End time</label><input class="input" type="time" [ngModel]="end()" (ngModelChange)="end.set($event)" /></div>
+  <div>
+    <label class="label">Duration</label>
+    <div class="chips">
+      @for (d of durations; track d) { <button class="chip" type="button" [class.chip--active]="duration() === d" (click)="setDuration(d)">{{ d }} min</button> }
+    </div>
+  </div>
+</div>
+
+<div class="aa-grid">
+  <div><label class="label">Starting bid (₹)</label><input class="input" type="number" [ngModel]="startingBid()" (ngModelChange)="startingBid.set(+$event)" /></div>
+  <div><label class="label">Bid increment (₹)</label><input class="input" type="number" [ngModel]="increment()" (ngModelChange)="increment.set(+$event)" /></div>
+</div>
+
+@if (error()) { <p class="form-error" role="alert"><app-icon name="alert" [size]="14" /> {{ error() }}</p> }
+
+<div class="spacer"></div>
+<button class="btn" [class.btn--loading]="saving()" type="button" (click)="save()">
+  @if (saving()) { <span class="spin"></span> Saving… } @else { <app-icon name="cal" [size]="18" /> {{ editing() ? 'Save Changes' : 'Schedule Auction' }} }
+</button>

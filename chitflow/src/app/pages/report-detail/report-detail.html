@@ -1,0 +1,136 @@
+<app-page-header [title]="title()" [subtitle]="'Live from your data'">
+  <button class="icon-btn" type="button" (click)="download()" aria-label="Download CSV"><app-icon name="download" [size]="20" /></button>
+</app-page-header>
+
+@switch (type()) {
+  @case ('insights') {
+    @if (group(); as g) {
+      <select class="input" [ngModel]="g.id" (ngModelChange)="pickGroup($event)">
+        @for (x of store.groups(); track x.id) { <option [ngValue]="x.id">{{ x.name }}</option> }
+      </select>
+      <div class="spacer"></div>
+      <div class="report-summary">
+        <div class="card card--static"><span class="muted">Members</span><b [appCountUp]="insight().members"></b></div>
+        <div class="card card--static"><span class="muted">Collected</span><b class="pos">₹{{ insight().collected | inr }}</b></div>
+        <div class="card card--static"><span class="muted">Outstanding</span><b class="neg">₹{{ insight().outstanding | inr }}</b></div>
+      </div>
+      <p class="muted">Collection rate {{ insight().rate }}% • Payouts ₹{{ insight().payouts | inr }} • Month {{ g.currentMonth }} of {{ g.durationMonths }}</p>
+
+      <div class="section-title">Month by month</div>
+      <div class="card card--static table-wrap">
+        <table class="table">
+          <thead><tr><th>Month</th><th>Paid</th><th>Collected</th><th>Pending</th></tr></thead>
+          <tbody>
+            @for (r of months(); track r.monthIndex; let i = $index) {
+              <tr [style.--i]="i">
+                <td><b>{{ r.monthIndex }}</b><div class="bar report-bar"><i [style.width.%]="r.ratePct"></i></div></td>
+                <td>{{ r.paidCount }}/{{ r.members }}</td>
+                <td class="pos">₹{{ r.collected | inr }}</td>
+                <td class="neg">₹{{ r.outstanding | inr }}</td>
+              </tr>
+            } @empty { <tr><td colspan="4" class="muted">No dues billed yet.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="section-title">Members</div>
+      <div class="card card--static table-wrap">
+        <table class="table">
+          <thead><tr><th>Member</th><th>Paid</th><th>Pending</th><th>Balance</th></tr></thead>
+          <tbody>
+            @for (r of memberRows(); track r.key) {
+              <tr>
+                <td><b>{{ r.chitNumber ?? '—' }}. {{ r.member.name }}</b><div class="muted">{{ r.state }}</div></td>
+                <td>{{ r.monthsPaid }}</td><td>{{ r.monthsPending }}</td>
+                <td [class.neg]="r.outstanding > 0">₹{{ r.outstanding | inr }}</td>
+              </tr>
+            } @empty { <tr><td colspan="4" class="muted">No members in this group yet.</td></tr> }
+          </tbody>
+        </table>
+      </div>
+
+      @if (matrix().length) {
+        <div class="section-title">Payment matrix</div>
+        <div class="card card--static table-wrap">
+          <table class="table matrix">
+            <thead><tr><th>Member</th>@for (m of matrixMonths(); track m) { <th>{{ m }}</th> }</tr></thead>
+            <tbody>
+              @for (r of matrix(); track r.row.key) {
+                <tr>
+                  <td><b>{{ r.row.member.name }}</b></td>
+                  @for (c of r.cells; track c.m) {
+                    <td><span class="mx" [ngClass]="'mx--' + c.status.toLowerCase().replace(' ', '')" [title]="cellTitle(r.row.member.name, c)">{{ sym(c.status) }}</span></td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="muted">✓ paid &nbsp; ½ part paid &nbsp; • pending &nbsp; ! overdue</p>
+      }
+    } @else {
+      <app-empty-state icon="bar" title="No groups yet" text="Create a chit group to see its report." />
+    }
+  }
+  @case ('group') {
+    <div class="report-summary">
+      <div class="card card--static"><span class="muted">Groups</span><b [appCountUp]="totals().groups"></b></div>
+      <div class="card card--static"><span class="muted">Members</span><b [appCountUp]="totals().members"></b></div>
+      <div class="card card--static"><span class="muted">Collected</span><b class="pos">₹{{ totals().collected | inr }}</b></div>
+    </div>
+    <div class="card card--static table-wrap">
+      <table class="table">
+        <thead><tr><th>Group</th><th>Members</th><th>Collected</th><th>Pending</th></tr></thead>
+        <tbody>
+          @for (r of groupReport(); track r.group.id; let i = $index) {
+            <tr [style.--i]="i">
+              <td><b>{{ r.group.name }}</b><div class="muted">Month {{ r.group.currentMonth }}/{{ r.group.durationMonths }} • {{ r.auctions }} auctions</div><div class="bar report-bar"><i [style.width.%]="r.rate"></i></div></td>
+              <td>{{ r.members }}</td>
+              <td class="pos">₹{{ r.collected | inr }}</td>
+              <td class="neg">₹{{ r.outstanding | inr }}</td>
+            </tr>
+          } @empty { <tr><td colspan="4" class="muted">No groups yet.</td></tr> }
+          @if (groupReport().length) {
+            <tr class="report-total"><td>Total</td><td></td><td class="pos">₹{{ totals().collected | inr }}</td><td class="neg">₹{{ totals().outstanding | inr }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  @case ('member') {
+    <div class="card card--static table-wrap">
+      <table class="table">
+        <thead><tr><th>Member</th><th>Paid</th><th>Pending</th><th>Won</th></tr></thead>
+        <tbody>
+          @for (r of memberReport(); track r.member.id; let i = $index) {
+            <tr [style.--i]="i">
+              <td><b>{{ r.member.name }}</b><div class="muted">{{ r.member.code }} • {{ r.groups }} group(s) • {{ r.participated }} auctions</div></td>
+              <td class="pos">₹{{ r.paid | inr }}</td>
+              <td [class.neg]="r.outstanding > 0">₹{{ r.outstanding | inr }}<div class="muted">{{ r.pendingMonths }} mo</div></td>
+              <td>{{ r.won }}</td>
+            </tr>
+          } @empty { <tr><td colspan="4" class="muted">No members yet.</td></tr> }
+        </tbody>
+      </table>
+    </div>
+  }
+  @case ('auction') {
+    <div class="card card--static table-wrap">
+      <table class="table">
+        <thead><tr><th>Auction</th><th>Winner</th><th>Bid</th><th>Dividend</th></tr></thead>
+        <tbody>
+          @for (a of auctionReport(); track a.id; let i = $index) {
+            <tr [style.--i]="i">
+              <td><b>{{ groupName(a.groupId) }}</b><div class="muted">{{ a.label }} • {{ fmt(a.scheduledDate) }}</div></td>
+              <td>{{ winnerName(a.winnerMemberId) }}</td>
+              <td>₹{{ a.winningBid ?? 0 | inr }}</td>
+              <td class="pos">₹{{ a.dividendPerMember ?? 0 | inr }}</td>
+            </tr>
+          } @empty { <tr><td colspan="4" class="muted">No completed auctions yet.</td></tr> }
+        </tbody>
+      </table>
+    </div>
+  }
+}
+
+<button class="btn" type="button" (click)="download()"><app-icon name="download" [size]="18" /> Download CSV</button>

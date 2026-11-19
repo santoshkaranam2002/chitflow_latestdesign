@@ -1,0 +1,47 @@
+@use 'global' as *;
+:host { display: block; }
+
+.md-top {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;
+  &__name { display: flex; flex-direction: column; b { font-size: 15px; } }
+  &__bell { position: relative; }
+  &__dot { position: absolute; top: -2px; right: -3px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: $danger; color: $white; border: 2px solid $bg; font-size: 9px; font-style: normal; font-weight: 800; display: flex; align-items: center; justify-content: center; animation: pulse-ring-primary 2s infinite; }
+}
+
+.md-hello { display: flex; align-items: baseline; gap: 6px; margin-bottom: 12px; font-size: 18px; animation: fade-up 0.5s $ease-out backwards 0.05s; .muted { font-size: 13px; } b { font-size: 20px; letter-spacing: -0.02em; } }
+
+.md-balance {
+  animation: fade-up 0.6s $ease-out backwards 0.1s;
+  &__amount { margin: 6px 0; font-size: 32px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  &__delta { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 10px; @include glass(0.18); }
+  &__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px;
+    div { @include glass(0.14); border-radius: 14px; padding: 9px 10px; display: flex; flex-direction: column; gap: 2px; }
+    small { font-size: 10px; } b { font-size: 16px; } }
+}
+
+.md-quick {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0 4px;
+  &__item { display: flex; flex-direction: column; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; color: $text; @include reveal(60ms, 250ms); transition: transform 0.25s $ease-spring;
+    span { width: 50px; height: 50px; border-radius: 18px; background: $card; border: 1px solid $line; box-shadow: $shadow-card; color: $primary; display: flex; align-items: center; justify-content: center; transition: all 0.3s $ease-spring; }
+    &:hover span { background: $gradient; color: $white; border-color: transparent; transform: translateY(-4px) rotate(-4deg); box-shadow: $shadow-glow; }
+    &:active { transform: scale(0.92); } }
+}
+
+.md-auction {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 12px; background: $soft; animation: fade-up 0.6s $ease-out backwards 0.3s;
+  &__info { display: flex; flex-direction: column; gap: 3px; align-items: flex-start; b { font-size: 13px; } }
+  &__go { display: flex; align-items: center; gap: 2px; font-size: 12px; font-weight: 700; color: $primary; }
+}
+
+.md-item { display: flex; flex-direction: column; gap: 2px; b { font-size: 13px; } &--end { align-items: flex-end; } }
+.md-empty { text-align: center; font-size: 13px; color: $muted; }
+.md-cols { display: grid; gap: 0 18px; }
+
+@media (min-width: 900px) {
+  .md-cols { grid-template-columns: 1fr 1fr; align-items: start; }
+  .md-quick { display: none; }
+  .md-top { display: none; }
+}
+
+.md-gains { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 12px 0;
+  div { display: flex; flex-direction: column; gap: 3px; span { font-size: 11px; color: var(--cf-muted, #8a8f98); } b { font-size: 18px; } } }

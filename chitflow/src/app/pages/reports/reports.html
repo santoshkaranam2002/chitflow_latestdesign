@@ -1,0 +1,45 @@
+<app-page-header title="Reports" subtitle="Insights across your groups" />
+
+<app-tabs [options]="tabs" [(value)]="period" [small]="true" />
+
+<div class="card card--static reports-main">
+  <div class="row"><b>Total Contribution</b><span class="reports__trend"><app-icon name="trend" [size]="24" /></span></div>
+  <b class="reports__total">₹ <span [appCountUp]="collected()"></span></b><br>
+  @if (change() !== null) {
+    <span class="pill reports__change" [class.pill--ok]="change()! >= 0" [class.pill--bad]="change()! < 0"><app-icon [name]="change()! >= 0 ? 'up' : 'down'" [size]="10" [stroke]="3.4" /> {{ change()! >= 0 ? '+' : '' }}{{ change() }}% from previous period</span>
+  } @else {
+    <span class="muted">Collected in the last {{ period() === '3M' ? 3 : period() === '6M' ? 6 : 12 }} months</span>
+  }
+
+  <div class="chart reports-chart">
+    @for (b of points(); track $index + period()) {
+      <div [style.--i]="$index" (click)="pick($index)" (keydown.enter)="pick($index)" tabindex="0" [class.sel]="selected() === $index">
+        @if (selected() === $index) { <em class="reports-chart__tip">₹{{ b.collected | inr }}</em> }
+        <i [style.height.px]="b.h"></i>{{ b.label }}
+      </div>
+    }
+  </div>
+</div>
+
+<div class="reports-split">
+  <div class="card card--static reports-rate">
+    <app-progress-ring [value]="rate()" [size]="78" [thickness]="9" />
+    <div><b>Collection rate</b><span class="muted">of ₹{{ billed() | inr }} billed</span></div>
+  </div>
+  <div class="card card--static reports-pending">
+    <span class="muted">Pending dues</span>
+    <b>₹{{ pending() | inr }}</b>
+    @if (pending() > 0) { <span class="pill pill--pd">Needs follow-up</span> } @else { <span class="pill pill--ok">All collected</span> }
+  </div>
+</div>
+
+<div class="section-title">Detailed Reports</div>
+@for (l of links; track l.id; let i = $index) {
+  <a class="card row reveal" [style.--i]="i" routerLink="/reports/detail" [queryParams]="{ type: l.id }">
+    <span class="row-gap reports__link">
+      <span class="reports__file"><app-icon [name]="l.icon" [size]="20" /></span>
+      <span class="reports__text"><b>{{ l.title }}</b><span class="muted">{{ l.hint }}</span></span>
+    </span>
+    <span class="muted reports__chev"><app-icon name="chev" [size]="18" /></span>
+  </a>
+}

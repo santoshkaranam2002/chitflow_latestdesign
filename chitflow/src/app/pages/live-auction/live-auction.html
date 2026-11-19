@@ -1,0 +1,47 @@
+@if (auction(); as a) {
+  <app-page-header title="Live Auction" [subtitle]="participants() + ' of ' + totalMembers() + ' members bidding'">
+    @if (live()) { <span class="pill pill--live">LIVE</span> } @else { <span class="pill pill--up">{{ a.status }}</span> }
+  </app-page-header>
+
+  <div class="hero live-hero">
+    <span class="hero__sheen"></span>
+    <small>{{ group()?.name }} • {{ a.label }} • ₹{{ group()?.chitValue | inr }}</small>
+    <div class="live-hero__timer">
+      <app-progress-ring [value]="ringValue()" [size]="132" [thickness]="8" [light]="true" [label]="participants() + '/' + totalMembers()" />
+    </div>
+    <small>Members who have bid</small>
+    <div class="live-hero__bid">
+      <small>{{ top() ? 'Highest bid' : 'Starting bid' }}</small>
+      <b class="live-hero__amount">₹{{ (top()?.amount ?? a.startingBid) | inr }}</b>
+      <small>{{ top() ? 'by ' + top()!.memberName : 'No bids yet • step ₹' + (a.bidIncrement | inr) }}</small>
+    </div>
+  </div>
+
+  <div class="section-title">Bid History</div>
+  <div class="live-history">
+    @for (b of bids(); track b.id; let first = $first) {
+      <div class="card card--static row live-bid" [class.live-bid--top]="first">
+        <span class="row-gap live-bid__who">
+          <i class="live-bid__rank">{{ first ? '👑' : '•' }}</i>
+          <span>{{ b.memberName }}<small class="muted">{{ b.time | stamp }}</small></span>
+        </span>
+        <b>₹{{ b.amount | inr }}</b>
+      </div>
+    } @empty {
+      <app-empty-state icon="gavel" title="Waiting for bids" text="Members can bid from their own login. New bids appear here automatically." />
+    }
+  </div>
+
+  <div class="spacer"></div>
+  @if (live()) {
+    <button class="btn" [class.btn--loading]="closing()" type="button" (click)="close()">
+      @if (closing()) { <span class="spin"></span> Closing… } @else { <app-icon name="trophy" [size]="18" /> Close Auction &amp; Declare Winner }
+    </button>
+  } @else {
+    <a class="btn" routerLink="/auctions/result" [queryParams]="{ id: a.id }">View Result</a>
+  }
+} @else {
+  <app-page-header title="Live Auction" />
+  <app-empty-state icon="gavel" title="Auction not found" text="It may have been deleted." />
+  <a class="btn" routerLink="/auctions">Back to Auctions</a>
+}

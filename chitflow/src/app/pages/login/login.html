@@ -1,0 +1,48 @@
+<div class="screen login">
+
+  <!-- Form side -->
+  <section class="login__panel">
+    <span class="login__blob login__blob--1"></span>
+    <span class="login__blob login__blob--2"></span>
+
+    <div class="login__brand">
+      <app-logo [size]="74" [glow]="true" />
+      <h1>Chit<span>Flow</span></h1>
+      <p class="muted">Together We Grow</p>
+    </div>
+
+    <div class="login__form">
+      <h2>Welcome back 👋</h2>
+      <p class="muted login__sub">{{ role() === 'admin' ? 'Login to manage your chit groups' : 'Login to view your chits, auctions and payments' }}</p>
+
+      <div class="login__role"><app-tabs [options]="roles" [value]="role()" (valueChange)="setRole($event)" /></div>
+
+      <div class="input-group login__field" style="--i: 1">
+        <app-icon name="user" [size]="18" />
+        <input type="text" [placeholder]="role() === 'admin' ? 'Email or mobile number' : 'Member email or mobile number'" [ngModel]="identifier()" (ngModelChange)="identifier.set($event)" (keydown.enter)="login()" autocomplete="username" />
+      </div>
+      <div class="input-group login__field" style="--i: 2">
+        <app-icon name="lock" [size]="18" />
+        <input [type]="showPassword() ? 'text' : 'password'" placeholder="Password" [ngModel]="password()" (ngModelChange)="password.set($event)" (keydown.enter)="login()" autocomplete="current-password" />
+        <button class="icon-btn" type="button" (click)="showPassword.set(!showPassword())" [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'">
+          <app-icon [name]="showPassword() ? 'eyeoff' : 'eye'" [size]="18" />
+        </button>
+      </div>
+
+      @if (error()) { <p class="login__error" role="alert"><app-icon name="alert" [size]="14" /> {{ error() }}</p> }
+
+      <button class="btn" [class.btn--loading]="loading()" type="button" (click)="login()">
+        @if (loading()) { <span class="spin"></span> Signing in… } @else { Login <app-icon name="arrow" [size]="18" /> }
+      </button>
+
+      @if (role() === 'admin') { <p class="muted login__foot">New here? <a routerLink="/register">Register</a></p> }
+      @else { <p class="muted login__foot">Login details are given by your chit organizer</p> }
+    </div>
+
+    <div class="login__trust">
+      @for (t of trust; track t.label) {
+        <span><app-icon [name]="t.icon" [size]="14" />{{ t.label }}</span>
+      }
+    </div>
+  </section>
+</div>

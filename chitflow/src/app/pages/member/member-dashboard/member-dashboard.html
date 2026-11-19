@@ -1,0 +1,85 @@
+<div class="md-top">
+  <div class="row-gap md-top__brand">
+    <app-logo [size]="38" />
+    <div class="md-top__name"><b>ChitFlow</b><span class="muted">Together We Grow</span></div>
+  </div>
+  <div class="row-gap">
+    <a class="md-top__bell icon-btn" routerLink="/member/notifications" aria-label="Notifications">
+      <app-icon name="bell" [size]="22" />
+      @if (unread() > 0) { <i class="md-top__dot">{{ unread() }}</i> }
+    </a>
+    <a class="avatar avatar--sm avatar--primary" routerLink="/member/profile">@if (user().photo) { <img [src]="user().photo" alt="" /> } @else { {{ user().initials }} }</a>
+  </div>
+</div>
+
+<div class="md-hello"><span class="muted">{{ hello }},</span><b>{{ firstName() }} 👋</b></div>
+
+<div class="hero md-balance">
+  <span class="hero__sheen"></span>
+  <div class="row"><small>Total Amount Paid</small><small>{{ user().name }}</small></div>
+  <div class="md-balance__amount">₹ <span [appCountUp]="stats().totalPaid"></span></div>
+  <span class="md-balance__delta"><app-icon name="clock" [size]="12" [stroke]="3" /> ₹{{ stats().pending | inr }} pending</span>
+  <div class="md-balance__stats">
+    <div><small>Groups Joined</small><b>{{ stats().joined }}</b></div>
+    <div><small>Active</small><b>{{ stats().active }}</b></div>
+    <div><small>Completed</small><b>{{ stats().completed }}</b></div>
+  </div>
+</div>
+
+<div class="md-quick">
+  @for (a of actions; track a.label; let i = $index) {
+    <a class="md-quick__item" [routerLink]="a.path" [style.--i]="i">
+      <span><app-icon [name]="a.icon" [size]="20" /></span>{{ a.label }}
+    </a>
+  }
+</div>
+
+@if (nextAuction(); as auction) {
+  <a class="card card--glow md-auction" routerLink="/member/auctions">
+    <div class="row-gap">
+      <app-icon-tile icon="gavel" bg="#ffffff" color="#f26a1b" [size]="46" />
+      <div class="md-auction__info">
+        @if (auction.status === 'Live') { <span class="pill pill--live">LIVE NOW</span> } @else { <span class="pill pill--pd">NEXT AUCTION</span> }
+        <b>{{ nextGroup()?.name }} • ₹{{ nextGroup()?.chitValue | inr }}</b>
+        <span class="muted">{{ auction.label }} • {{ auction.scheduledDate | date: 'dd MMM' }}, {{ auction.startTime }}</span>
+      </div>
+    </div>
+    <span class="md-auction__go">{{ auction.status === 'Live' ? 'Bid now' : when() }} <app-icon name="chev" [size]="16" /></span>
+  </a>
+}
+
+<div class="card card--static md-gains">
+  <div><span>Dividends earned</span><b class="pos">₹{{ gains().dividends | inr }}</b></div>
+  <div><span>Prize received</span><b class="pos">₹{{ gains().prize | inr }}</b></div>
+</div>
+
+<div class="md-cols">
+  <div>
+    <div class="row section-title"><span>Upcoming Payments</span><a class="link" routerLink="/member/payments">View All</a></div>
+    @for (p of upcomingPayments(); track p.id; let i = $index) {
+      <div class="card card--static row reveal" [style.--i]="i">
+        <div class="row-gap">
+          <app-icon-tile icon="clock" [bg]="st(p) === 'Overdue' ? '#fde2e2' : '#ffe7d1'" [color]="st(p) === 'Overdue' ? '#e5432d' : '#d9730d'" />
+          <div class="md-item"><b>{{ groupName(p.groupId) }}</b><span class="muted">Month {{ p.monthIndex }}</span></div>
+        </div>
+        <div class="md-item md-item--end">
+          <b>₹{{ bal(p) | inr }}</b>
+          <span class="pill" [class.pill--bad]="st(p) === 'Overdue'" [class.pill--pd]="st(p) !== 'Overdue'">{{ st(p) === 'Overdue' ? 'Overdue' : 'Due ' + (p.dueDate | date: 'dd MMM') }}</span>
+        </div>
+      </div>
+    } @empty { <div class="card card--static md-empty">No pending payments 🎉</div> }
+  </div>
+
+  <div>
+    <div class="row section-title"><span>Latest Payments</span><a class="link" routerLink="/member/payments">Payment History</a></div>
+    @for (p of latestPayments(); track p.id; let i = $index) {
+      <div class="card card--static row reveal" [style.--i]="i">
+        <div class="row-gap">
+          <app-icon-tile icon="up" bg="#dcf5e6" color="#1b8a4b" />
+          <div class="md-item"><b>{{ groupName(p.groupId) }}</b><span class="muted">{{ p.method || 'Payment' }}{{ p.transactionId ? ' · ' + p.transactionId : '' }}</span></div>
+        </div>
+        <div class="md-item md-item--end"><b class="pos">₹{{ paid(p) | inr }}</b><span class="muted">{{ p.paidDate | date: 'dd MMM yyyy' }}</span></div>
+      </div>
+    } @empty { <div class="card card--static md-empty">No payments yet</div> }
+  </div>
+</div>

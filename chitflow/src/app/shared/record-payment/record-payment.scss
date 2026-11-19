@@ -1,0 +1,10 @@
+@use 'global' as *;
+:host { display: contents; }
+.rp {
+  &__summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 6px;
+    div { background: $surface; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 3px; }
+    span { font-size: 10px; color: $muted; } b { font-size: 14px; } }
+  &__due { margin: 6px 0 0; }
+  &__chips { margin-top: 8px; }
+  &__hint { margin-top: 12px; padding: 9px 12px; border-radius: 12px; background: var(--cf-pd-bg); color: var(--cf-pd); font-size: 12px; }
+}

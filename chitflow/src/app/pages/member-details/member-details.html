@@ -1,0 +1,174 @@
+@if (member(); as m) {
+  <app-page-header title="Member Details">
+    <button class="icon-btn" type="button" (click)="print()" aria-label="Print statement"><app-icon name="file" [size]="20" /></button>
+    <button class="icon-btn" type="button" (click)="exportCsv()" aria-label="Export CSV"><app-icon name="download" [size]="20" /></button>
+    <button class="icon-btn" type="button" (click)="startEdit()" aria-label="Edit member"><app-icon name="pencil" [size]="20" /></button>
+    <button class="icon-btn" type="button" (click)="remove()" aria-label="Delete member"><app-icon name="trash" [size]="20" /></button>
+  </app-page-header>
+
+  <div class="card card--static member-profile">
+    <div class="member-profile__cover"></div>
+    <app-avatar class="block" size="lg" [photo]="m.photo" [initials]="m.initials" [color]="color(m.id)" />
+    <b class="member-profile__name">{{ m.name }}</b><br>
+    <span class="muted">Member No: {{ m.code }}</span><br><br>
+    <span class="pill" [ngClass]="pill(totals().status)">{{ totals().status }}</span>
+    <div class="member-profile__actions">
+      <a class="btn btn--soft" [href]="'tel:' + (m.phone || '').replace(' ', '')"><app-icon name="call" [size]="16" /> Call</a>
+      @if (m.email) { <a class="btn btn--soft" [href]="'mailto:' + m.email"><app-icon name="mail" [size]="16" /> Email</a> }
+    </div>
+  </div>
+
+  <div class="card card--static row member-stats">
+    <app-progress-ring [value]="totals().rate" [size]="74" [thickness]="8" />
+    <div class="member-stats__text">
+      <span class="muted">Total paid</span>
+      <b>₹<span [appCountUp]="totals().totalPaid"></span></b>
+      <span class="muted">{{ totals().outstanding ? '₹' + (totals().outstanding | inr) + ' pending' : totals().totalDue ? 'All dues cleared 🎉' : 'No dues yet' }}</span>
+    </div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="card card--static stat"><b class="pos">{{ totals().monthsPaid }}</b><span>Months paid</span></div>
+    <div class="card card--static stat"><b class="neg">{{ totals().monthsPending }}</b><span>Months pending</span></div>
+    <div class="card card--static stat"><b>{{ totals().remaining }}</b><span>Months remaining</span></div>
+    <div class="card card--static stat"><b>₹{{ totals().payouts | inr }}</b><span>Payout received</span></div>
+  </div>
+
+  <div class="card card--static">
+    <div class="info-row"><span>Mobile</span><b>{{ m.phone || '—' }}</b></div>
+    <div class="info-row"><span>Email</span><b>{{ m.email || '—' }}</b></div>
+    <div class="info-row"><span>Address</span><b>{{ m.address || '—' }}</b></div>
+    <div class="info-row"><span>Nominee</span><b>{{ m.nominee || '—' }}</b></div>
+    <div class="info-row"><span>Bank account</span><b>{{ m.bankAccount || '—' }}</b></div>
+    <div class="info-row"><span>With us since</span><b>{{ firstJoined() ? fmt(firstJoined()) + ' (' + since(firstJoined()) + ')' : 'Unavailable' }}</b></div>
+    <div class="info-row"><span>Total due / paid</span><b>₹{{ totals().totalDue | inr }} / ₹{{ totals().totalPaid | inr }}</b></div>
+  </div>
+
+  <div class="section-title">Payment ledger</div>
+  <div class="chips md-groups">
+    <button class="chip" type="button" [class.chip--active]="groupFilter() === 'All'" (click)="groupFilter.set('All')">All groups</button>
+    @for (s of summaries(); track s.key) {
+      <button class="chip" type="button" [class.chip--active]="groupFilter() === s.group.id" (click)="groupFilter.set(s.group.id)">{{ s.group.name }}</button>
+    }
+  </div>
+  <app-tabs [options]="tabs()" [(value)]="view" [small]="true" />
+
+  @if (view() === 'groups') {
+    @for (s of scoped(); track s.key; let i = $index) {
+      <div class="card card--static md-card reveal" [style.--i]="i">
+        <div class="row">
+          <div class="md-card__title"><b>{{ s.group.name }}</b><span class="muted">Chit No. {{ s.chitNumber ?? '—' }} • Joined {{ s.joinedOn ? fmt(s.joinedOn) : 'Unavailable' }}{{ s.duration ? ' (' + s.duration + ')' : '' }}</span></div>
+          <span class="pill" [ngClass]="s.state === 'Left' ? 'pill--bad' : s.state === 'Completed' ? 'pill--dn' : 'pill--ok'">{{ s.state }}</span>
+        </div>
+        <div class="md-card__nums">
+          <div><b class="pos">{{ s.monthsPaid }}</b><span>Paid</span></div>
+          <div><b class="neg">{{ s.monthsPending }}</b><span>Pending</span></div>
+          <div><b>{{ s.monthsRemaining }}</b><span>Remaining</span></div>
+          <div><b>₹{{ s.totalPaid | inr }}</b><span>Paid amount</span></div>
+          <div><b [class.neg]="s.outstanding > 0">₹{{ s.outstanding | inr }}</b><span>Balance</span></div>
+        </div>
+        <div class="bar"><i [style.width.%]="s.paidPct"></i></div>
+        @if (s.state === 'Left') {
+          <p class="muted">Left on {{ s.leftOn ? fmt(s.leftOn) : 'Unavailable' }}{{ s.leaveReason ? ' — ' + s.leaveReason : '' }}</p>
+        }
+        <div class="md-card__actions">
+          <button class="text-btn" type="button" (click)="toggle(s.key)">{{ expanded() === s.key ? 'Hide months' : 'Show months' }}</button>
+          <button class="text-btn" type="button" (click)="showGroup(s)">Payments</button>
+          @if (s.state === 'Active') {
+            <button class="text-btn" type="button" (click)="openLeave(s, 'Completed')">Mark completed</button>
+            <button class="text-btn text-btn--danger" type="button" (click)="openLeave(s, 'Left')">Mark left</button>
+          } @else {
+            <button class="text-btn" type="button" (click)="reactivate(s)">Re-activate</button>
+          }
+        </div>
+        @if (expanded() === s.key) {
+          <div class="md-grid">
+            @for (c of monthCells(s); track c.m) {
+              <span class="md-cell" [ngClass]="'md-cell--' + c.status.toLowerCase().replace(' ', '')" [title]="cellTitle(c)">{{ c.m }}</span>
+            }
+          </div>
+          <div class="md-legend">
+            <span><i class="md-cell md-cell--paid"></i>Paid</span><span><i class="md-cell md-cell--partial"></i>Part</span><span><i class="md-cell md-cell--pending"></i>Pending</span><span><i class="md-cell md-cell--overdue"></i>Overdue</span><span><i class="md-cell md-cell--upcoming"></i>Upcoming</span>
+          </div>
+        }
+      </div>
+    } @empty {
+      <app-empty-state icon="users" title="Not in any group" text="Add this member to a chit group to start their ledger." />
+    }
+  } @else {
+    <div class="chips md-groups">
+      @for (s of statusOptions; track s) {
+        <button class="chip" type="button" [class.chip--active]="statusFilter() === s" (click)="statusFilter.set(s)">{{ s === 'All' ? 'All' : label(s) }} ({{ count(s) }})</button>
+      }
+    </div>
+    @for (p of history().slice(0, limit()); track p.id; let i = $index) {
+      <div class="card card--static md-pay reveal" [style.--i]="i">
+        <div class="row">
+          <div class="md-card__title">
+            <b>{{ groupName(p.groupId) }} • {{ p.type === 'Installment' ? 'Month ' + p.monthIndex : 'Winner payout (month ' + p.monthIndex + ')' }}</b>
+            <span class="muted">Due {{ fmt(p.dueDate) || '—' }}{{ p.paidDate ? ' • Paid ' + fmt(p.paidDate) : '' }}{{ p.method ? ' • ' + p.method : '' }}</span>
+            @if (p.transactionId) { <span class="muted">Txn {{ p.transactionId }}</span> }
+          </div>
+          <div class="md-pay__end">
+            <b>₹{{ p.amount | inr }}</b>
+            <span class="pill" [ngClass]="pill(st(p))">{{ label(st(p)) }}</span>
+          </div>
+        </div>
+        @if (p.type === 'Installment') {
+          <div class="md-pay__sub">
+            <span class="muted">Received <b class="pos">₹{{ paid(p) | inr }}</b></span>
+            <span class="muted">Balance <b [class.neg]="bal(p) > 0">₹{{ bal(p) | inr }}</b></span>
+            @if (bal(p) > 0) { <button class="text-btn" type="button" (click)="recording.set(p)">Record payment</button> }
+            @else { <a class="text-btn" routerLink="/payments/receipt" [queryParams]="{ id: p.id }">Receipt</a> }
+          </div>
+        }
+      </div>
+    } @empty {
+      <app-empty-state icon="card" title="No payments found" text="Nothing recorded for this filter yet." />
+    }
+@if (history().length > limit()) { <button class="btn btn--soft" type="button" (click)="more()">Show more ({{ history().length - limit() }} left)</button> }
+  }
+
+  <app-record-payment [payment]="recording()" (closed)="recording.set(null)" />
+
+  @if (editing()) {
+    <div class="modal-back" (click)="editing.set(false)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal__head"><h3>Edit member</h3><button class="icon-btn" type="button" (click)="editing.set(false)" aria-label="Close"><app-icon name="close" [size]="18" /></button></div>
+        <app-photo-picker [photo]="draft().photo" [initials]="m.initials" label="Member photo" (changed)="setDraft('photo', $event)" />
+        <label class="label">Full name</label><input class="input" [ngModel]="draft().name" (ngModelChange)="setDraft('name', $event)" />
+        <label class="label">Phone</label><input class="input" type="tel" [ngModel]="draft().phone" (ngModelChange)="setDraft('phone', $event)" />
+        <label class="label">Email</label><input class="input" type="email" [ngModel]="draft().email" (ngModelChange)="setDraft('email', $event)" />
+        <label class="label">Address</label><input class="input" [ngModel]="draft().address" (ngModelChange)="setDraft('address', $event)" />
+        <label class="label">Nominee</label><input class="input" [ngModel]="draft().nominee" (ngModelChange)="setDraft('nominee', $event)" />
+        <label class="label">Bank account</label><input class="input" [ngModel]="draft().bankAccount" (ngModelChange)="setDraft('bankAccount', $event)" />
+        <label class="label">Status</label>
+        <div class="chips">@for (s of memberStatuses; track s) { <button class="chip" type="button" [class.chip--active]="draft().status === s" (click)="setDraft('status', s)">{{ s }}</button> }</div>
+        @if (error()) { <p class="form-error" role="alert"><app-icon name="alert" [size]="14" /> {{ error() }}</p> }
+        <div class="modal__foot">
+          <button class="btn btn--soft" type="button" (click)="editing.set(false)">Cancel</button>
+          <button class="btn" [class.btn--loading]="saving()" type="button" (click)="saveEdit()">@if (saving()) { <span class="spin"></span> Saving… } @else { Save }</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (leaveFor(); as s) {
+    <div class="modal-back" (click)="leaveFor.set(null)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal__head"><h3>{{ leave().status === 'Left' ? 'Mark as left' : 'Mark as completed' }}</h3><button class="icon-btn" type="button" (click)="leaveFor.set(null)" aria-label="Close"><app-icon name="close" [size]="18" /></button></div>
+        <p class="muted">{{ s.member.name }} · {{ s.group.name }}. Their payment history is kept.</p>
+        <label class="label">Date</label><input class="input" type="date" [ngModel]="leave().date" (ngModelChange)="setLeave('date', $event)" />
+        <label class="label">Reason (optional)</label><input class="input" [ngModel]="leave().reason" (ngModelChange)="setLeave('reason', $event)" />
+        @if (error()) { <p class="form-error" role="alert"><app-icon name="alert" [size]="14" /> {{ error() }}</p> }
+        <div class="modal__foot">
+          <button class="btn btn--soft" type="button" (click)="leaveFor.set(null)">Cancel</button>
+          <button class="btn" [class.btn--loading]="saving()" type="button" (click)="saveLeave()">@if (saving()) { <span class="spin"></span> Saving… } @else { Confirm }</button>
+        </div>
+      </div>
+    </div>
+  }
+} @else {
+  <app-page-header title="Member Details" />
+  <app-empty-state icon="user" title="Member not found" text="This member may have been removed." />
+}

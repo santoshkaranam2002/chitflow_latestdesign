@@ -1,0 +1,37 @@
+<app-page-header title="Defaulters" subtitle="Members with overdue installments">
+  <button class="icon-btn" type="button" (click)="exportCsv()" aria-label="Export CSV"><app-icon name="download" [size]="20" /></button>
+</app-page-header>
+
+<div class="hero dfl-hero">
+  <span class="hero__sheen"></span>
+  <small>Total overdue</small>
+  <b class="dfl-hero__amount">₹<span [appCountUp]="total()"></span></b>
+  <span class="dfl-hero__sub">{{ rows().length }} {{ rows().length === 1 ? 'member' : 'members' }} are late</span>
+</div>
+
+<select class="input" [value]="groupFilter()" (change)="groupFilter.set($any($event.target).value === 'All' ? 'All' : +$any($event.target).value)">
+  <option value="All">All groups</option>
+  @for (g of groups(); track g.id) { <option [value]="g.id">{{ g.name }}</option> }
+</select>
+
+@for (r of rows(); track r.memberId; let i = $index) {
+  <div class="card card--static dfl reveal" [style.--i]="i">
+    <div class="row">
+      <a class="row-gap dfl__who" routerLink="/members/details" [queryParams]="{ id: r.memberId }">
+        <app-avatar size="sm" [photo]="r.photo" [initials]="r.initials" [color]="color(r.memberId)" />
+        <span class="dfl__name"><b>{{ r.name }}</b><span class="muted">{{ r.groups.join(' • ') }}</span></span>
+      </a>
+      <span class="dfl__amt"><b class="neg">₹{{ r.amount | inr }}</b><span class="pill pill--bad">{{ r.daysLate }} days late</span></span>
+    </div>
+    <div class="dfl__meta muted">{{ r.months }} overdue {{ r.months === 1 ? 'month' : 'months' }} · since {{ r.oldest | date: 'dd MMM yyyy' }}</div>
+    <div class="dfl__actions">
+      <a class="btn btn--soft btn--sm" [href]="callHref(r)"><app-icon name="phone" [size]="15" /> Call</a>
+      <a class="btn btn--soft btn--sm" [href]="whatsappHref(r)" target="_blank" rel="noopener"><app-icon name="chat" [size]="15" /> WhatsApp</a>
+      <button class="btn btn--sm" type="button" (click)="recording.set(r.firstPayment)"><app-icon name="card" [size]="15" /> Collect</button>
+    </div>
+  </div>
+} @empty {
+  <app-empty-state icon="shield" title="No defaulters" text="Everyone is up to date with their installments." />
+}
+
+<app-record-payment [payment]="recording()" (closed)="recording.set(null)" />

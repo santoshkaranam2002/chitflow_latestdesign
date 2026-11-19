@@ -1,0 +1,83 @@
+<app-page-header title="Auctions" subtitle="Only your registered groups" />
+
+@for (a of live(); track a.id) {
+  <div class="hero ma-live">
+    <span class="hero__sheen"></span>
+    <div class="row">
+      <span class="pill pill--live">LIVE NOW</span>
+      <small [class.ma-live__tick]="pulse() % 2 === 0">● Updating live</small>
+    </div>
+    <div class="ma-live__name"><b>{{ groupName(a) }}</b><small>Month {{ a.monthIndex }} · Chit ₹{{ group(a)?.chitValue | inr }}</small></div>
+    <small>{{ top(a) ? 'Current highest bid' : 'No bids yet · starting bid' }}</small>
+    <div class="ma-live__bid">₹{{ (top(a) ? highest(a) : a.startingBid) | inr }}</div>
+    <div class="ma-live__stats">
+      <div><small>Next min bid</small><b>₹{{ minNext(a) | inr }}</b></div>
+      <div><small>Bidders</small><b>{{ bidders(a) }}</b></div>
+      <div><small>Time</small><b>{{ a.startTime }}</b></div>
+    </div>
+    <div class="ma-live__winner"><app-icon name="trophy" [size]="14" />
+      @if (top(a); as t) { @if (t.memberId === store_me()) { You are leading! } @else { Leading: {{ t.memberName }} } } @else { Be the first to bid }
+      · winner not declared yet</div>
+  </div>
+
+  <div class="card card--static ma-bid">
+    <div class="row">
+      <b>Place your bid</b>
+      <span class="muted">Min. next bid ₹{{ minNext(a) | inr }}</span>
+    </div>
+    <div class="input-group ma-bid__input">
+      <b>₹</b>
+      <input #bidBox type="number" inputmode="numeric" [value]="mineAmount(a)" (input)="setBid(a, +bidBox.value)" (keydown.enter)="place(a)" [step]="a.bidIncrement" aria-label="Your bid amount" />
+    </div>
+    <div class="chips ma-bid__quick">
+      @for (q of quick; track q) { <button class="chip" type="button" (click)="raise(a, q)">+ ₹{{ q | inr }}</button> }
+    </div>
+    @if (calc(a); as c) {
+      <div class="ma-calc">
+        <div><span>If you win</span><b class="pos">₹{{ c.prize | inr }}</b></div>
+        <div><span>Dividend each</span><b>₹{{ c.dividend | inr }}</b></div>
+        <div><span>Next installment</span><b>₹{{ c.installment | inr }}</b></div>
+      </div>
+    }
+    @if (error()) { <div class="form-error">{{ error() }}</div> }
+    <button class="btn" type="button" [disabled]="busy() || mineAmount(a) < minNext(a)" [class.btn--loading]="busy()" (click)="place(a)"><app-icon name="gavel" [size]="18" /> Place Bid</button>
+
+    <div class="section-title">Recent bids</div>
+    @for (b of (bids()[a.id] ?? []).slice(0, 8); track b.id) {
+      <div class="ma-bidrow" [class.ma-bidrow--you]="b.memberId === store_me()">
+        <span>{{ b.memberId === store_me() ? 'You' : b.memberName }} <small class="muted">{{ b.time | stamp }}</small></span>
+        <b>₹{{ b.amount | inr }}</b>
+      </div>
+    } @empty { <div class="muted">No bids yet</div> }
+  </div>
+} @empty {
+  <div class="card card--static ma-none"><app-icon name="gavel" [size]="26" /> No live auction right now</div>
+}
+
+<div class="ma-cols">
+  <div>
+    <div class="section-title">Upcoming Auctions</div>
+    @for (a of upcoming(); track a.id; let i = $index) {
+      <div class="card card--static row reveal" [style.--i]="i">
+        <div class="row-gap">
+          <app-icon-tile icon="gavel" bg="#ffe6d8" color="#f26a1b" />
+          <div class="ma-item"><b>{{ groupName(a) }}</b><span class="muted">Month {{ a.monthIndex }} · {{ a.scheduledDate | date: 'dd MMM' }}, {{ a.startTime }}</span></div>
+        </div>
+        <div class="ma-item ma-item--end"><b>₹{{ group(a)?.chitValue | inr }}</b><span class="pill pill--dn">{{ when(a) }}</span></div>
+      </div>
+    } @empty { <div class="card card--static ma-none">No upcoming auctions</div> }
+  </div>
+
+  <div>
+    <div class="section-title">Previous Results</div>
+    @for (a of previous(); track a.id; let i = $index) {
+      <div class="card card--static row reveal" [style.--i]="i">
+        <div class="row-gap">
+          <app-icon-tile icon="trophy" bg="#fff0c9" color="#d99a06" />
+          <div class="ma-item"><b>{{ winnerName(a) }}</b><span class="muted">{{ groupName(a) }} · Month {{ a.monthIndex }} · {{ a.scheduledDate | date: 'dd MMM yy' }}</span></div>
+        </div>
+        <div class="ma-item ma-item--end"><b>₹{{ a.winningBid ?? 0 | inr }}</b><span class="muted">{{ a.status === 'Completed' ? 'Winning bid' : 'Awaiting confirmation' }}</span></div>
+      </div>
+    } @empty { <div class="card card--static ma-none">No results yet</div> }
+  </div>
+</div>

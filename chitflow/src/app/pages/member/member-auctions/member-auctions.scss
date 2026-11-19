@@ -1,0 +1,25 @@
+@use 'global' as *;
+:host { display: block; }
+
+.ma-live { animation: fade-up 0.6s $ease-out backwards 0.05s;
+  &__name { margin: 12px 0 10px; b { display: block; font-size: 20px; } }
+  &__bid { margin: 2px 0 12px; font-size: 36px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+  &__tick { animation: bump 0.6s; }
+  &__stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    div { @include glass(0.14); border-radius: 14px; padding: 9px 10px; display: flex; flex-direction: column; gap: 2px; } small { font-size: 10px; } b { font-size: 15px; } }
+  &__winner { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 12px; font-weight: 600; opacity: 0.95; }
+}
+.ma-none { display: flex; align-items: center; justify-content: center; gap: 10px; text-align: center; font-size: 13px; color: $muted; app-icon { color: $primary; } }
+.ma-item { display: flex; flex-direction: column; gap: 2px; b { font-size: 13px; } &--end { align-items: flex-end; } }
+.ma-cols { display: grid; gap: 0 18px; }
+@media (min-width: 900px) { .ma-cols { grid-template-columns: 1fr 1fr; align-items: start; } }
+
+.ma-bid { margin-top: 12px; animation: fade-up 0.6s $ease-out backwards 0.15s;
+  &__input { margin: 12px 0 10px; b { font-size: 18px; color: $primary; } input { font-size: 20px; font-weight: 800; } }
+  &__quick { margin-bottom: 12px; }
+}
+.ma-bidrow { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin-bottom: 6px; border-radius: 12px; background: $surface; font-size: 13px;
+  &--you { background: $soft; border: 1px solid $soft-line; b { color: $primary; } } }
+
+.ma-calc { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; padding: 10px; border-radius: 12px; background: var(--cf-soft, #fff4ec);
+  div { display: flex; flex-direction: column; gap: 2px; text-align: center; span { font-size: 10px; color: var(--cf-muted, #8a8f98); } b { font-size: 13px; } } }

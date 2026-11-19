@@ -1,0 +1,12 @@
+@use 'global' as *;
+:host { display: block; }
+
+.mpr-head { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 14px; margin-bottom: 6px; animation: fade-up 0.5s $ease-out backwards;
+  &__cover { position: absolute; top: 0; left: 0; right: 0; height: 84px; border-radius: 22px; background: $gradient-rich; }
+  &__avatar { position: relative; margin-top: 40px; border-radius: 50%; box-shadow: 0 0 0 4px $bg; }
+  &__name { font-size: 18px; margin-top: 4px; }
+}
+.mpr-sec { margin-top: 22px; }
+.mpr-chip { display: inline-flex; align-items: center; gap: 6px; cursor: default; }
+.mpr-cols { display: grid; gap: 0 28px; }
+@media (min-width: 900px) { .mpr-cols { grid-template-columns: 1.2fr 1fr; align-items: start; } }

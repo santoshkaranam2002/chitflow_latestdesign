@@ -1,0 +1,14 @@
+<div class="shell">
+  <app-sidebar />
+  <div class="shell__main">
+    <app-topbar />
+    <div class="screen">
+      @if (error()) {
+        <div class="shell__error"><b>Could not load your data</b><span>{{ error() }}</span><button class="btn btn--sm" type="button" (click)="refresh()">Try again</button></div>
+      }
+      <router-outlet />
+    </div>
+    <app-bottom-nav class="shell__bottom" (more)="drawerOpen.set(true)" />
+  </div>
+</div>
+<app-drawer class="shell__drawer" [open]="drawerOpen()" (closed)="drawerOpen.set(false)" />

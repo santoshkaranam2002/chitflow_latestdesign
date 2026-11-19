@@ -1,0 +1,29 @@
+<app-page-header title="My Profile" />
+
+<div class="profile-head">
+  <div class="profile-head__cover"></div>
+  <div class="profile-head__avatar">
+    <app-avatar [photo]="user().photo" [initials]="user().initials" size="xl" [primary]="true" />
+    <span class="pf-cam"><app-photo-picker [photo]="user().photo || ''" [initials]="user().initials" [compact]="true" (changed)="savePhoto($event)" /></span>
+  </div>
+  <b class="profile-head__name">{{ user().name }}</b>
+  <span class="muted">{{ user().orgName || 'Chit organizer' }}</span>
+  <div class="profile-head__stats">
+    <div><b>{{ groups() }}</b><span>Groups</span></div>
+    <div><b>{{ members() }}</b><span>Members</span></div>
+    <div><b>{{ collected() }}</b><span>Collected</span></div>
+  </div>
+</div>
+
+<div class="card card--static">
+  <div class="info-row"><span>Organization</span><b>{{ user().orgName || '—' }}</b></div>
+  <div class="info-row"><span>Owner</span><b>{{ user().name }}</b></div>
+  <div class="info-row"><span>Email</span><b>{{ user().email || '—' }}</b></div>
+  <div class="info-row"><span>Mobile</span><b>{{ user().phone || '—' }}</b></div>
+  <div class="info-row"><span>Role</span><b>Admin</b></div>
+</div>
+
+<div class="spacer"></div>
+<a class="btn btn--soft" routerLink="/settings"><app-icon name="settings" [size]="18" /> Settings</a>
+<div class="spacer"></div>
+<button class="btn btn--ghost profile-logout" type="button" (click)="logout()"><app-icon name="logout" [size]="18" /> Logout</button>

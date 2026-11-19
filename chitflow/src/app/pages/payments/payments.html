@@ -1,0 +1,129 @@
+<app-page-header title="Payments" subtitle="Track every contribution">
+  <button class="icon-btn" type="button" (click)="exportCsv()" aria-label="Export CSV"><app-icon name="download" [size]="20" /></button>
+  <button class="icon-btn" type="button" [class.icon-btn--primary]="filtering() || hasFilters()" (click)="filtering.set(!filtering())" aria-label="Filter"><app-icon name="filter" [size]="20" /></button>
+</app-page-header>
+
+@if (filtering()) {
+  <div class="card card--static pay-filters">
+    <div class="input-group"><app-icon name="search" [size]="18" /><input placeholder="Search member name, phone or code" [ngModel]="search()" (ngModelChange)="search.set($event)" /></div>
+    <div class="select-row">
+      <select class="input" [ngModel]="groupFilter()" (ngModelChange)="onGroup($event)">
+        <option value="All">All groups</option>
+        @for (g of store.groups(); track g.id) { <option [value]="g.id">{{ g.name }}</option> }
+      </select>
+      <select class="input" [ngModel]="memberFilter()" (ngModelChange)="memberFilter.set($event === 'All' ? 'All' : +$event)">
+        <option value="All">All members</option>
+        @for (m of memberOptions(); track m.id) { <option [value]="m.id">{{ m.name }}</option> }
+      </select>
+    </div>
+    <div class="select-row">
+      <select class="input" [ngModel]="monthFilter()" (ngModelChange)="monthFilter.set(+$event)">
+        <option [value]="0">Any month</option>
+        @for (m of months; track m; let i = $index) { <option [value]="i + 1">{{ m }}</option> }
+      </select>
+      <select class="input" [ngModel]="yearFilter()" (ngModelChange)="yearFilter.set($event === 'All' ? 'All' : +$event)">
+        <option value="All">Any year</option>
+        @for (y of yearOptions(); track y) { <option [value]="y">{{ y }}</option> }
+      </select>
+    </div>
+    <div class="chips">
+      @for (s of statuses; track s) { <button class="chip" type="button" [class.chip--active]="statusFilter() === s" (click)="statusFilter.set(s)">{{ s === 'All' ? 'Any status' : label(s) }}</button> }
+    </div>
+    @if (hasFilters()) { <button class="text-btn" type="button" (click)="clearFilters()">Clear all filters</button> }
+  </div>
+}
+
+<app-tabs [options]="tabs" [(value)]="view" [small]="true" />
+
+<div class="card card--static row payments-summary">
+  <div class="payments-summary__text">
+    <span class="muted">Total Collected</span>
+    <b class="payments__total">₹ <span [appCountUp]="kpi().collected"></span></b>
+    <span class="pill pill--ok">{{ kpi().rate }}% of ₹{{ kpi().billed | inr }} billed</span>
+  </div>
+  @if (bars().length) {
+    <div class="chart chart--mini">
+      @for (b of bars(); track b.label + $index) {
+        <div [style.--i]="$index" [title]="b.label + ' – ₹' + (b.value | inr)"><i [style.height.px]="b.h"></i></div>
+      }
+    </div>
+  }
+</div>
+
+<div class="stat-grid">
+  <div class="card card--static stat"><b class="neg">₹{{ kpi().outstanding | inr }}</b><span>Outstanding</span></div>
+  <div class="card card--static stat"><b class="neg">{{ kpi().overdueCount }}</b><span>Overdue (₹{{ kpi().overdueAmount | inr }})</span></div>
+  <div class="card card--static stat"><b>₹{{ kpi().payout | inr }}</b><span>Winner payouts</span></div>
+</div>
+
+<a class="btn" routerLink="/payments/make"><app-icon name="card" [size]="18" /> Record Payment</a>
+
+@switch (view()) {
+  @case ('ledger') {
+    <div class="section-title">Member ledger</div>
+    @for (r of ledger().slice(0, limit()); track r.key; let i = $index) {
+      <a class="card row reveal" [style.--i]="i" routerLink="/members/details" [queryParams]="{ id: r.member.id, groupId: r.group.id }">
+        <div class="pay-row"><b>{{ r.member.name }}</b><span class="muted">{{ r.group.name }} • Chit {{ r.chitNumber ?? '—' }} • {{ r.state }}</span>
+          <span class="muted">{{ r.monthsPaid }} paid • {{ r.monthsPending }} pending • {{ r.monthsRemaining }} left</span></div>
+        <div class="pay-row pay-row--end"><b [class.neg]="r.outstanding > 0">₹{{ r.outstanding | inr }}</b><span class="pill" [ngClass]="pill(r.status)">{{ label(r.status) }}</span></div>
+      </a>
+    } @empty { <app-empty-state icon="user" title="No ledger entries" text="Add members to a group to see their payment ledger here." /> }
+@if (ledger().length > limit()) { <button class="btn btn--soft" type="button" (click)="more()">Show more ({{ ledger().length - limit() }} left)</button> }
+  }
+  @case ('monthly') {
+    <div class="section-title">Monthly summary</div>
+    @for (r of monthly(); track r.groupName + r.monthIndex; let i = $index) {
+      <div class="card card--static row reveal" [style.--i]="i">
+        <div class="pay-row"><b>{{ r.groupName }} • Month {{ r.monthIndex }}</b><span class="muted">Due {{ fmt(r.dueDate) || '—' }}</span>
+          <span class="muted">{{ r.paidCount }} paid • {{ r.partialCount }} part • {{ r.pendingCount }} pending • {{ r.overdueCount }} overdue</span></div>
+        <div class="pay-row pay-row--end"><b>₹{{ r.collected | inr }}</b><span class="muted">of ₹{{ r.billed | inr }} ({{ r.ratePct }}%)</span></div>
+      </div>
+    } @empty { <app-empty-state icon="cal" title="Nothing billed yet" text="Monthly dues appear once an auction is confirmed." /> }
+  }
+  @case ('outstanding') {
+    <div class="section-title">Group balances</div>
+    @for (b of groupBalances(); track b.group.id; let i = $index) {
+      <div class="card card--static reveal" [style.--i]="i">
+        <div class="row"><b>{{ b.group.name }}</b><b [class.neg]="b.outstanding > 0">₹{{ b.outstanding | inr }} due</b></div>
+        <div class="bar"><i [style.width.%]="b.rate"></i></div>
+        <span class="muted">Collected ₹{{ b.collected | inr }} of ₹{{ b.billed | inr }} ({{ b.rate }}%)</span>
+      </div>
+    }
+    <div class="section-title">Members with dues</div>
+    @for (r of outstandingRows().slice(0, limit()); track r.key; let i = $index) {
+      <a class="card row reveal" [style.--i]="i" routerLink="/members/details" [queryParams]="{ id: r.member.id, groupId: r.group.id }">
+        <div class="pay-row"><b>{{ r.member.name }}</b><span class="muted">{{ r.group.name }} • {{ r.member.phone }}</span><span class="muted">{{ r.monthsPending }} month(s) pending{{ r.monthsOverdue ? ', ' + r.monthsOverdue + ' overdue' : '' }}</span></div>
+        <b class="neg">₹{{ r.outstanding | inr }}</b>
+      </a>
+    } @empty { <app-empty-state icon="check" title="All caught up" text="No outstanding balances for this filter." /> }
+@if (outstandingRows().length > limit()) { <button class="btn btn--soft" type="button" (click)="more()">Show more ({{ outstandingRows().length - limit() }} left)</button> }
+  }
+  @default {
+    <div class="section-title">All payments</div>
+    @for (p of transactions().slice(0, limit()); track p.id; let i = $index) {
+      <div class="card card--static reveal pay-tx" [style.--i]="i">
+        <div class="row">
+          <div class="pay-row"><b>{{ memberName(p.memberId) }}</b><span class="muted">{{ groupName(p.groupId) }} • {{ p.type === 'Installment' ? 'Month ' + p.monthIndex : 'Winner payout' }}</span>
+            <span class="muted">Due {{ fmt(p.dueDate) || '—' }}{{ p.paidDate ? ' • Paid ' + fmt(p.paidDate) : '' }}{{ p.method ? ' • ' + p.method : '' }}</span>
+            @if (p.transactionId) { <span class="muted">Txn {{ p.transactionId }}</span> }</div>
+          <div class="pay-row pay-row--end"><b>₹{{ p.amount | inr }}</b><span class="pill" [ngClass]="pill(st(p))">{{ label(st(p)) }}</span></div>
+        </div>
+        @if (p.type === 'Installment') {
+          <div class="pay-tx__sub">
+            <span class="muted">Received <b class="pos">₹{{ paid(p) | inr }}</b></span>
+            <span class="muted">Balance <b [class.neg]="bal(p) > 0">₹{{ bal(p) | inr }}</b></span>
+            @if (bal(p) > 0) {
+              <button class="text-btn" type="button" (click)="recording.set(p)">Record</button>
+              <button class="text-btn" type="button" [disabled]="marking() === p.id" (click)="markPaid(p)">{{ marking() === p.id ? 'Saving…' : 'Mark paid' }}</button>
+            } @else {
+              <a class="text-btn" routerLink="/payments/receipt" [queryParams]="{ id: p.id }">Receipt</a>
+            }
+          </div>
+        }
+      </div>
+    } @empty { <app-empty-state icon="card" title="No payments found" text="Nothing matches this filter yet." /> }
+@if (transactions().length > limit()) { <button class="btn btn--soft" type="button" (click)="more()">Show more ({{ transactions().length - limit() }} left)</button> }
+  }
+}
+
+<app-record-payment [payment]="recording()" (closed)="recording.set(null)" />

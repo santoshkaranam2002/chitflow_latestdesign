@@ -1,0 +1,11 @@
+:host { display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+.shell { flex: 1; min-height: 0; display: flex; }
+.shell__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+// Web: sidebar + top bar replace the bottom navigation and the drawer
+@media (min-width: 900px) {
+  .shell__bottom, .shell__drawer { display: none; }
+}
+
+.shell__error { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; padding: 24px 16px; color: var(--cf-muted, #8a8f98); b { color: inherit; font-size: 15px; } span { font-size: 12px; max-width: 320px; } }

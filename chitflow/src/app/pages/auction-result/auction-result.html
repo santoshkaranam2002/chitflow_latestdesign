@@ -1,0 +1,49 @@
+@if (auction(); as a) {
+  @if (winner()) { <app-confetti [count]="46" /> }
+  <app-page-header title="Auction Result" [subtitle]="a.status" />
+
+  @if (winner(); as w) {
+    <div class="hero result-hero">
+      <span class="hero__sheen"></span>
+      <div class="result-hero__rays"></div>
+      <div class="result-hero__trophy"><app-icon name="trophy" [size]="32" /></div>
+      <small>Winner</small>
+      <b class="result-hero__name">{{ w.name }}</b>
+      <div class="result-hero__prize"><small>Prize amount</small><b>₹<span [appCountUp]="prize()"></span></b></div>
+    </div>
+  } @else {
+    <app-empty-state icon="gavel" title="No winner yet" [text]="a.status === 'Live' ? 'Bidding is still open. Close the auction to declare the winner.' : 'There were no bids for this auction.'" />
+  }
+
+  <div class="card card--static">
+    @for (r of rows(); track r.label; let i = $index) {
+      <div class="info-row result-row" [style.--i]="i"><span>{{ r.label }}</span><b>{{ r.value }}</b></div>
+    }
+  </div>
+
+  @if (bids().length) {
+    <div class="section-title">All bids</div>
+    @for (b of bids(); track b.id; let first = $first) {
+      <div class="card card--static row" [class.live-bid--top]="first">
+        <span>{{ first ? '👑 ' : '' }}{{ b.memberName }}<small class="muted"> {{ b.time | stamp }}</small></span>
+        <b>₹{{ b.amount | inr }}</b>
+      </div>
+    }
+  }
+
+  <div class="spacer"></div>
+  @if (pending()) {
+    <button class="btn" [class.btn--loading]="confirming()" type="button" (click)="confirm()">
+      @if (confirming()) { <span class="spin"></span> Confirming… } @else { <app-icon name="check" [size]="18" /> Confirm Result &amp; Create Dues }
+    </button>
+    <div class="spacer"></div>
+  } @else if (a.status === 'Live') {
+    <a class="btn" routerLink="/auctions/live" [queryParams]="{ id: a.id }">Back to Live Room</a>
+    <div class="spacer"></div>
+  }
+  <a class="btn btn--soft" routerLink="/auctions">Back to Auctions</a>
+} @else {
+  <app-page-header title="Auction Result" />
+  <app-empty-state icon="trophy" title="Auction not found" text="Open an auction from the Auctions page." />
+  <a class="btn" routerLink="/auctions">Back to Auctions</a>
+}

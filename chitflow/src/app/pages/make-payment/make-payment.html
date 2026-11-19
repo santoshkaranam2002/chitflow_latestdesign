@@ -1,0 +1,55 @@
+<app-page-header title="Record Payment" subtitle="Money received from a member" />
+
+<label class="label">Select group</label>
+<select class="input" [ngModel]="groupId() || ''" (ngModelChange)="pickGroup($event)">
+  <option value="">Choose a group</option>
+  @for (g of store.groups(); track g.id) { <option [value]="g.id">{{ g.name }} (₹{{ g.monthlyInstallment | inr }})</option> }
+</select>
+
+<label class="label">Member</label>
+<select class="input" [ngModel]="memberId() || ''" (ngModelChange)="pickMember($event)" [disabled]="!groupId()">
+  <option value="">Choose a member</option>
+  @for (m of members(); track m.id) { <option [value]="m.id">{{ m.name }}</option> }
+</select>
+
+<label class="label">Installment</label>
+<select class="input" [ngModel]="paymentId() || ''" (ngModelChange)="pick(+$event)" [disabled]="!memberId()">
+  <option value="">{{ memberId() && !dues().length ? 'No pending installments' : 'Choose an installment' }}</option>
+  @for (d of dues(); track d.id) { <option [value]="d.id">{{ label(d.id) }}</option> }
+</select>
+
+@if (payment(); as p) {
+  <div class="card card--static mp-summary">
+    <div class="info-row"><span>Installment</span><b>₹{{ p.amount | inr }}</b></div>
+    <div class="info-row"><span>Already received</span><b class="pos">₹{{ paid(p) | inr }}</b></div>
+    <div class="info-row mp-summary__total"><span>Balance</span><b>₹{{ balance() | inr }}</b></div>
+  </div>
+}
+
+<label class="label">Amount received (₹)</label>
+<div class="mp-amount">
+  <span>₹</span>
+  <input type="number" [ngModel]="amount()" (ngModelChange)="amount.set(+$event)" aria-label="Amount" />
+</div>
+@if (isPart()) { <p class="muted">Saved as a part payment – ₹{{ balance() - amount() | inr }} stays pending.</p> }
+
+<label class="label">Payment method</label>
+<div class="mp-methods">
+  @for (m of methods; track m.id) {
+    <button type="button" class="mp-method" [class.mp-method--active]="method() === m.id" (click)="method.set(m.id)">
+      <span class="mp-method__icon"><app-icon [name]="m.icon" [size]="18" /></span>
+      <b>{{ m.id }}</b><small>{{ m.hint }}</small>
+      <i class="mp-method__tick"><app-icon name="check" [size]="11" [stroke]="3.4" /></i>
+    </button>
+  }
+</div>
+
+<label class="label">Paid on</label>
+<input class="input" type="date" [max]="today" [ngModel]="paidDate()" (ngModelChange)="paidDate.set($event)" />
+
+@if (error()) { <p class="form-error" role="alert"><app-icon name="alert" [size]="14" /> {{ error() }}</p> }
+
+<div class="spacer"></div>
+<button class="btn" [class.btn--loading]="processing()" type="button" (click)="pay()">
+  @if (processing()) { <span class="spin"></span> Saving payment… } @else { <app-icon name="check" [size]="16" /> Save ₹{{ amount() | inr }} }
+</button>

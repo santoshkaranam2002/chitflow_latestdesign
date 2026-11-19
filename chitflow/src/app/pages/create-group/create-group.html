@@ -1,0 +1,82 @@
+<app-page-header [title]="editing() ? 'Edit Chit Group' : 'Create Chit Group'" [subtitle]="editing() ? 'Update the group details' : 'Set it up in under a minute'" />
+
+<div class="hero cg-preview">
+  <span class="hero__sheen"></span>
+  <small>Live preview</small>
+  <b class="cg-preview__name">{{ name() || 'Your group name' }}</b>
+  <div class="cg-preview__value">₹{{ value() | inr }}</div>
+  <div class="cg-preview__stats">
+    <div><small>Monthly</small><b>₹{{ installment() | inr }}</b></div>
+    <div><small>Members</small><b>{{ members() }}</b></div>
+    <div><small>Duration</small><b>{{ duration() }} mo</b></div>
+  </div>
+</div>
+
+<label class="label">Group name</label>
+<input class="input" placeholder="e.g. Dream Home" [ngModel]="name()" (ngModelChange)="name.set($event)" />
+<label class="label">Chit value (₹)</label>
+<input class="input" type="number" [ngModel]="value()" (ngModelChange)="value.set(+$event); recalc()" />
+
+<div class="cg-steppers">
+  <div>
+    <label class="label">Total members</label>
+    <div class="cg-step">
+      <button type="button" (click)="step('members', -1)" aria-label="Fewer members"><app-icon name="minus" [size]="16" [stroke]="3" /></button>
+      <b>{{ members() }}</b>
+      <button type="button" (click)="step('members', 1)" aria-label="More members"><app-icon name="plus" [size]="16" [stroke]="3" /></button>
+    </div>
+  </div>
+  <div>
+    <label class="label">Duration (months)</label>
+    <div class="cg-step">
+      <button type="button" (click)="step('duration', -1)" aria-label="Shorter"><app-icon name="minus" [size]="16" [stroke]="3" /></button>
+      <b>{{ duration() }}</b>
+      <button type="button" (click)="step('duration', 1)" aria-label="Longer"><app-icon name="plus" [size]="16" [stroke]="3" /></button>
+    </div>
+  </div>
+</div>
+
+<label class="label">Monthly installment (₹)</label>
+<input class="input" type="number" [ngModel]="installment()" (ngModelChange)="installment.set(+$event)" />
+
+<div class="cg-steppers">
+  <div><label class="label">Start date</label><input class="input" type="date" [ngModel]="start()" (ngModelChange)="start.set($event)" /></div>
+  <div><label class="label">Auction day of month</label><input class="input" type="number" min="1" max="31" [ngModel]="auctionDay()" (ngModelChange)="auctionDay.set(+$event)" /></div>
+</div>
+
+<div class="cg-steppers">
+  <div><label class="label">Starting bid (₹)</label><input class="input" type="number" [ngModel]="startingBid()" (ngModelChange)="startingBid.set(+$event)" /></div>
+  <div><label class="label">Bid increment (₹)</label><input class="input" type="number" [ngModel]="bidIncrement()" (ngModelChange)="bidIncrement.set(+$event)" /></div>
+</div>
+<div class="cg-steppers">
+  <div><label class="label">Minimum bid (₹)</label><input class="input" type="number" [ngModel]="minBid()" (ngModelChange)="minBid.set(+$event)" /></div>
+  <div><label class="label">Maximum bid (₹)</label><input class="input" type="number" [ngModel]="maxBid()" (ngModelChange)="maxBid.set(+$event)" /></div>
+</div>
+
+<label class="label">Commission type</label>
+<div class="chips">
+  @for (t of types; track t) {
+    <button class="chip" type="button" [class.chip--active]="commissionType() === t" (click)="commissionType.set(t)">{{ t === 'Fixed' ? 'Fixed ₹' : 'Percent %' }}</button>
+  }
+</div>
+<label class="label">Commission {{ commissionType() === 'Fixed' ? '(₹ per auction)' : '(% of chit value)' }}</label>
+<input class="input" type="number" [ngModel]="commissionValue()" (ngModelChange)="commissionValue.set(+$event)" />
+
+<label class="label">Foreman / organizer</label>
+<input class="input" [ngModel]="foreman()" (ngModelChange)="foreman.set($event)" />
+
+<label class="label">Status</label>
+<div class="chips">
+  @for (s of statuses; track s) {
+    <button class="chip" type="button" [class.chip--active]="status() === s" (click)="status.set(s)">{{ s }}</button>
+  }
+</div>
+
+<div class="cg-note"><app-icon name="info" [size]="16" /> Each member pays ₹{{ installment() | inr }} every month. Total pool per month: ₹{{ pool() | inr }}. Commission per auction: ₹{{ commissionAmount() | inr }}.</div>
+
+@if (error()) { <p class="form-error" role="alert"><app-icon name="alert" [size]="14" /> {{ error() }}</p> }
+
+<div class="spacer"></div>
+<button class="btn" [class.btn--loading]="saving()" type="button" (click)="save()">
+  @if (saving()) { <span class="spin"></span> Saving… } @else { <app-icon [name]="editing() ? 'check' : 'plus'" [size]="18" /> {{ editing() ? 'Save Changes' : 'Create Group' }} }
+</button>

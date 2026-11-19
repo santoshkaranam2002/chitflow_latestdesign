@@ -1,0 +1,26 @@
+@use 'global' as *;
+:host { display: block; }
+.member-profile {
+  position: relative; overflow: hidden; text-align: center; padding-top: 52px;
+  &__cover { position: absolute; top: 0; left: 0; right: 0; height: 74px; background: $gradient-rich; &::after { @include orb(120px, -50px, -30px); } }
+  .avatar { position: relative; }
+  &__name { font-size: 18px; }
+  &__actions { display: flex; gap: 10px; margin-top: 16px; .btn { flex: 1; } }
+}
+.member-stats { gap: 16px; justify-content: flex-start;
+  &__text { display: flex; flex-direction: column; gap: 3px; flex: 1; b { font-size: 24px; letter-spacing: -0.02em; } } }
+
+.md-groups { margin: 4px 0 10px; }
+.md-card { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;
+  &__title { display: flex; flex-direction: column; gap: 3px; b { font-size: 13px; } }
+  &__nums { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; text-align: center; div { display: flex; flex-direction: column; gap: 2px; } b { font-size: 13px; } span { font-size: 9px; color: $muted; } }
+  &__actions { display: flex; flex-wrap: wrap; gap: 4px; } }
+.md-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.md-cell { width: 28px; height: 28px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; background: $surface; color: $muted;
+  &--paid { background: var(--cf-ok-bg); color: var(--cf-ok); } &--partial { background: var(--cf-pd-bg); color: var(--cf-pd); }
+  &--pending { background: var(--cf-up-bg); color: var(--cf-up); } &--overdue { background: var(--cf-bad-bg); color: var(--cf-bad); }
+  &--upcoming, &--nodue { background: $surface; color: $muted; } }
+.md-legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 10px; color: $muted; span { display: inline-flex; align-items: center; gap: 4px; } i.md-cell { width: 12px; height: 12px; border-radius: 4px; } }
+.md-pay { margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px;
+  &__end { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  &__sub { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; } }

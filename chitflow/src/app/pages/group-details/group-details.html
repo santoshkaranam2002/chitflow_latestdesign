@@ -1,0 +1,93 @@
+@if (group(); as g) {
+  <app-page-header title="Group Details" [subtitle]="'Month ' + g.currentMonth + ' of ' + g.durationMonths">
+    <a class="icon-btn" routerLink="/groups/create" [queryParams]="{ id: g.id }" aria-label="Edit group"><app-icon name="pencil" [size]="20" /></a>
+    <button class="icon-btn" type="button" [disabled]="deleting()" (click)="remove()" aria-label="Delete group"><app-icon name="trash" [size]="20" /></button>
+  </app-page-header>
+
+  <div class="hero row group-hero">
+    <span class="hero__sheen"></span>
+    <div class="row-gap">
+      <div class="group-hero__icon"><app-icon [name]="tone().icon" [size]="30" /></div>
+      <div class="group-hero__text">
+        <b class="group-hero__name">{{ g.name }}</b>
+        <b class="group-hero__amount">₹<span [appCountUp]="g.chitValue"></span></b>
+        <span class="group-hero__tag">{{ g.status }} • {{ g.commissionType === 'Percent' ? g.commissionValue + '%' : '₹' + (g.commissionValue | inr) }} commission</span>
+      </div>
+    </div>
+    <app-progress-ring [value]="percent()" [size]="66" [thickness]="7" [light]="true" />
+  </div>
+
+  <div class="card card--static row group-stats">
+    <div><b>{{ paid().done }}/{{ paid().of }}</b><br><span class="muted">Paid this month</span></div>
+    <div><b>₹{{ g.monthlyInstallment | inr }}</b><br><span class="muted">Monthly</span></div>
+    <div><b>{{ nextAuction() ? (nextAuction()!.scheduledDate | date: 'dd MMM yyyy') : '—' }}</b><br><span class="muted">Next Auction</span></div>
+  </div>
+
+  <div class="section-title">Chit Timeline</div>
+  <div class="card card--static group-timeline">
+    <div class="group-timeline__dots">
+      @for (m of months(); track m) {
+        <i [class.done]="m <= g.currentMonth" [class.now]="m === g.currentMonth + 1" [style.--i]="m" [title]="'Month ' + m"></i>
+      }
+    </div>
+    <div class="row"><span class="muted">{{ g.currentMonth }} months completed</span><span class="muted">{{ g.durationMonths - g.currentMonth }} to go</span></div>
+  </div>
+
+  <div class="section-title">Group Overview</div>
+  <div class="card card--static">
+    @for (r of overview(); track r.label) {
+      <div class="info-row">
+        <span class="row-gap group-overview__label"><app-icon [name]="r.icon" [size]="18" /><em>{{ r.label }}</em></span>
+        <b>{{ r.value }}</b>
+      </div>
+    }
+  </div>
+
+  <div class="group-actions">
+    <a class="btn" routerLink="/members/add" [queryParams]="{ groupId: g.id }"><app-icon name="plus" [size]="18" /> Add Member</a>
+    <a class="btn btn--soft" routerLink="/auctions/add" [queryParams]="{ groupId: g.id }"><app-icon name="gavel" [size]="18" /> Schedule Auction</a>
+  </div>
+
+  <app-tabs [options]="tabs()" [(value)]="tab" [small]="true" />
+
+  @switch (tab()) {
+    @case ('members') {
+      @for (r of members(); track r.ms.memberId; let i = $index) {
+        <a class="card row reveal" [style.--i]="i" routerLink="/members/details" [queryParams]="{ id: r.ms.memberId, groupId: g.id }">
+          <div class="row-gap">
+            <app-avatar [photo]="r.member!.photo" [initials]="r.member!.initials" [color]="color(r.ms.memberId)" />
+            <div class="group-row"><b>{{ r.member!.name }}</b><span class="muted">Chit No. {{ r.ms.chitNumber }} • {{ r.member!.phone }}</span></div>
+          </div>
+          <span class="pill" [ngClass]="pillFor(r.state)">{{ r.state }}</span>
+        </a>
+      } @empty {
+        <app-empty-state icon="user" title="No members yet" text="Add the first member to this group." />
+      }
+    }
+    @case ('auctions') {
+      @for (a of auctions(); track a.id; let i = $index) {
+        <a class="card row reveal" [style.--i]="i" [routerLink]="a.status === 'Live' ? '/auctions/live' : a.status === 'Completed' || a.status === 'Pending Confirmation' ? '/auctions/result' : '/auctions/details'" [queryParams]="{ id: a.id }">
+          <div class="group-row"><b>{{ a.label }}</b><span class="muted">{{ a.scheduledDate | date: 'dd MMM yyyy' }} • {{ a.startTime }}</span></div>
+          <span class="pill" [ngClass]="pill(a.status)">{{ a.status }}</span>
+        </a>
+      } @empty {
+        <app-empty-state icon="gavel" title="No auctions yet" text="Schedule an auction for this group." />
+      }
+    }
+    @case ('payments') {
+      <div class="stat-grid">
+        <div class="card card--static stat"><b class="pos">₹{{ totalCollected() | inr }}</b><span>Collected</span></div>
+        <div class="card card--static stat"><b class="neg">₹{{ totalPayout() | inr }}</b><span>Winner payouts</span></div>
+        <div class="card card--static stat"><b>{{ pending() }}</b><span>Pending installments</span></div>
+      </div>
+      @for (p of recent(); track p.id) { <app-payment-item [payment]="p" /> } @empty {
+        <app-empty-state icon="card" title="No payments yet" text="Dues appear after the first auction is confirmed." />
+      }
+      <a class="btn btn--soft" routerLink="/payments">Open Payments</a>
+    }
+  }
+} @else {
+  <app-page-header title="Group Details" />
+  <app-empty-state icon="users" title="Group not found" text="This group may have been deleted." />
+  <a class="btn" routerLink="/groups">Back to Groups</a>
+}

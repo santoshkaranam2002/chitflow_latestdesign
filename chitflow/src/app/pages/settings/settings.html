@@ -1,0 +1,30 @@
+<app-page-header title="Settings" subtitle="Personalise your ChitFlow" />
+
+<div class="section-title settings__title">Appearance</div>
+<div class="settings-theme">
+  @for (t of themes; track t.id) {
+    <button type="button" class="settings-theme__opt" [class.settings-theme__opt--active]="theme.mode() === t.id" (click)="theme.set(t.id)">
+      <span class="settings-theme__preview" [attr.data-mode]="t.id"><i></i><i></i><i></i></span>
+      <app-icon [name]="t.icon" [size]="14" /> {{ t.label }}
+    </button>
+  }
+</div>
+
+<div class="section-title settings__title">Chit group rules</div>
+@for (g of store.groups(); track g.id) {
+  <a class="card row" routerLink="/groups/create" [queryParams]="{ id: g.id }">
+    <span class="row-gap settings__link"><span class="settings__icon"><app-icon name="percent" [size]="20" /></span>
+      <span class="settings__label"><b>{{ g.name }}</b><span class="muted">Bids ₹{{ g.minBid }} – ₹{{ g.maxBid }} • commission {{ g.commissionType === 'Percent' ? g.commissionValue + '%' : '₹' + g.commissionValue }}</span></span></span>
+    <span class="muted"><app-icon name="chev" [size]="18" /></span>
+  </a>
+} @empty { <p class="muted">No groups yet.</p> }
+
+<div class="spacer"></div>
+<a class="card row" routerLink="/activity">
+  <span class="row-gap settings__link"><span class="settings__icon"><app-icon name="file" [size]="20" /></span>Activity log</span>
+  <span class="muted"><app-icon name="chev" [size]="18" /></span>
+</a>
+<a class="card row" routerLink="/help">
+  <span class="row-gap settings__link"><span class="settings__icon"><app-icon name="help" [size]="20" /></span>Help &amp; Support</span>
+  <span class="muted"><app-icon name="chev" [size]="18" /></span>
+</a>

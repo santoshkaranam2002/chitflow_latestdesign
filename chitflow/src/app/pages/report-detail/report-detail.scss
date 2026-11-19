@@ -1,0 +1,12 @@
+@use 'global' as *;
+:host { display: block; }
+.report-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; .card { margin-bottom: 12px; padding: 12px; display: flex; flex-direction: column; gap: 4px; b { font-size: 20px; letter-spacing: -0.02em; } } }
+.table-wrap { margin-bottom: 14px; }
+tbody tr { @include reveal(70ms, 150ms); }
+.report-bar { margin: 5px 0 0; height: 4px; min-width: 70px; }
+.report-total td { font-weight: 800; border-top: 2px solid $line; background: $soft; &:first-child { border-radius: 10px 0 0 10px; } &:last-child { border-radius: 0 10px 10px 0; } }
+
+.matrix { th, td { text-align: center; padding: 6px 4px; font-size: 11px; } td:first-child, th:first-child { text-align: left; position: sticky; left: 0; background: $card; }
+  .mx { display: inline-flex; width: 22px; height: 22px; border-radius: 7px; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; background: $surface; color: $muted;
+    &--paid { background: var(--cf-ok-bg); color: var(--cf-ok); } &--partial { background: var(--cf-pd-bg); color: var(--cf-pd); } &--pending { background: var(--cf-up-bg); color: var(--cf-up); } &--overdue { background: var(--cf-bad-bg); color: var(--cf-bad); } } }
+select.input { margin-bottom: 4px; }

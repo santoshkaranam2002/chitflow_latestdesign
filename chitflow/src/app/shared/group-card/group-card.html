@@ -1,0 +1,35 @@
+<a class="card gc" routerLink="/groups/details" [queryParams]="{ id: group().id }" [style.--accent]="tone().color">
+  <div class="gc__top">
+    <app-icon-tile [icon]="tone().icon" [bg]="tone().bg" [color]="tone().color" [size]="50" />
+    <div class="gc__title">
+      <div class="gc__name">
+        <b>{{ group().name }}</b>
+        @if (isToday()) { <span class="pill pill--live">Auction today</span> }
+        @else { <span class="gc__tag">{{ group().durationMonths }} months</span> }
+      </div>
+      <span class="gc__label">Chit value</span>
+      <b class="gc__amount">₹{{ group().chitValue | inr }}</b>
+    </div>
+    <app-progress-ring [value]="percent()" [size]="58" [thickness]="6" />
+  </div>
+
+  <div class="gc__stats">
+    <div>
+      <span>Monthly</span>
+      <b>₹{{ group().monthlyInstallment | inr }}</b>
+    </div>
+    <div>
+      <span>Paid</span>
+      <b>{{ paid().done }}/{{ paid().of || joined() }}</b>
+    </div>
+    <div>
+      <span>Next auction</span>
+      <b>{{ next() ? (next() | date: 'dd MMM') : '—' }}</b>
+    </div>
+  </div>
+
+  <div class="gc__foot">
+    <span class="gc__when"><app-icon name="gavel" [size]="13" /> {{ when() }}</span>
+    <span class="gc__go">View details <app-icon name="arrow" [size]="14" [stroke]="2.4" /></span>
+  </div>
+</a>

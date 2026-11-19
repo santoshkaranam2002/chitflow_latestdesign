@@ -1,0 +1,62 @@
+<app-page-header title="Payment History" subtitle="Your payments only" />
+
+<div class="chips mp-groups">
+  <button class="chip" type="button" [class.chip--active]="groupFilter() === 'all'" (click)="groupFilter.set('all')">All groups</button>
+  @for (g of groups(); track g.id) {
+    <button class="chip" type="button" [class.chip--active]="groupFilter() === g.id" (click)="groupFilter.set(g.id)">{{ g.name }}</button>
+  }
+</div>
+
+<div class="card card--static row mp-summary">
+  <div class="mp-summary__text">
+    <span class="muted">Total Paid</span>
+    <b class="mp-summary__total">₹ <span [appCountUp]="paidTotal()"></span></b>
+  </div>
+  <div class="mp-summary__due"><span class="muted">Pending / overdue</span><b>₹{{ dueTotal() | inr }}</b></div>
+</div>
+
+@for (s of summaries(); track s.key) {
+  <div class="card card--static mp-ledger">
+    <div class="row"><b>{{ s.group.name }}</b><span class="pill" [class.pill--ok]="s.status === 'Paid'" [class.pill--bad]="s.status === 'Overdue'" [class.pill--pd]="s.status !== 'Paid' && s.status !== 'Overdue'">{{ s.status }}</span></div>
+    <div class="mp-ledger__grid">
+      <div><span>Paid months</span><b>{{ s.monthsPaid }}</b></div>
+      <div><span>Pending months</span><b>{{ s.monthsPending }}</b></div>
+      <div><span>Remaining months</span><b>{{ s.monthsRemaining }}</b></div>
+      <div><span>Total paid</span><b class="pos">₹{{ s.totalPaid | inr }}</b></div>
+      <div><span>Pending</span><b>₹{{ s.outstanding | inr }}</b></div>
+      <div><span>Duration</span><b>{{ s.group.durationMonths }} mo</b></div>
+    </div>
+  </div>
+}
+
+<div class="row mp-bar">
+  <app-tabs [options]="tabs()" [(value)]="status" />
+  <button class="icon-btn" type="button" aria-label="Print statement" (click)="print()"><app-icon name="file" [size]="18" /></button>
+  <button class="icon-btn" type="button" aria-label="Export CSV" (click)="exportCsv()"><app-icon name="download" [size]="18" /></button>
+</div>
+
+<div class="mp-list">
+  @for (p of rows().slice(0, limit()); track p.id; let i = $index) {
+    <div class="card card--static row reveal" [style.--i]="i">
+      <div class="row-gap">
+        <app-icon-tile [icon]="st(p) === 'Paid' ? 'up' : 'clock'" [bg]="st(p) === 'Paid' ? '#dcf5e6' : st(p) === 'Overdue' ? '#fde2e2' : '#ffe7d1'" [color]="st(p) === 'Paid' ? '#1b8a4b' : st(p) === 'Overdue' ? '#e5432d' : '#d9730d'" />
+        <div class="mp-item">
+          <b>{{ groupName(p.groupId) }}</b>
+          <span class="muted">Month {{ p.monthIndex }} · Due {{ p.dueDate | date: 'dd MMM yyyy' }}</span>
+          @if (paid(p) > 0) { <span class="muted">Paid {{ p.paidDate | date: 'dd MMM yyyy' }} · {{ p.method || 'Payment' }}{{ p.transactionId ? ' · ' + p.transactionId : '' }}</span> }
+        </div>
+      </div>
+      <div class="mp-item mp-item--end">
+        <b [class.pos]="st(p) === 'Paid'">₹{{ p.amount | inr }}</b>
+        @if (st(p) === 'Partial') { <span class="muted">Paid ₹{{ paid(p) | inr }} · Bal ₹{{ bal(p) | inr }}</span> }
+        <span class="pill" [class]="'pill ' + pillOf(st(p))">{{ st(p) === 'Partial' ? 'Part paid' : st(p) }}</span>
+        @if (paid(p) > 0) {
+          <a class="mp-item__dl" routerLink="/payments/receipt" [queryParams]="{ id: p.id }"><app-icon name="download" [size]="13" /> Receipt</a>
+        }
+      </div>
+    </div>
+  } @empty {
+    <app-empty-state icon="card" title="No payments" text="No payments match this filter." />
+  }
+@if (rows().length > limit()) { <button class="btn btn--soft" type="button" (click)="more()">Show more ({{ rows().length - limit() }} left)</button> }
+</div>

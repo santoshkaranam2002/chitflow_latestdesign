@@ -1,0 +1,49 @@
+@if (payment(); as p) {
+  <div class="modal-back" (click)="closed.emit()">
+    <div class="modal rp" (click)="$event.stopPropagation()">
+      <div class="modal__head">
+        <div>
+          <h3>Record Payment</h3>
+          <span class="muted">{{ member()?.name }} · {{ group()?.name }} · Month {{ p.monthIndex }}</span>
+        </div>
+        <button class="icon-btn" type="button" (click)="closed.emit()" aria-label="Close"><app-icon name="close" [size]="18" /></button>
+      </div>
+
+      <div class="rp__summary">
+        <div><span>Installment</span><b>₹{{ p.amount | inr }}</b></div>
+        <div><span>Received</span><b class="pos">₹{{ received() | inr }}</b></div>
+        <div><span>Balance</span><b class="neg">₹{{ balance() | inr }}</b></div>
+      </div>
+      @if (dueLabel()) { <p class="muted rp__due">Due on {{ dueLabel() }}</p> }
+
+      <label class="label">Amount received (₹)</label>
+      <input class="input" type="number" min="1" [max]="balance()" [ngModel]="amount()" (ngModelChange)="amount.set(+$event)" />
+      <div class="chips rp__chips">
+        <button class="chip" type="button" (click)="amount.set(balance())">Full balance</button>
+        @if (balance() >= 2) { <button class="chip" type="button" (click)="amount.set(Math.round(balance() / 2))">Half</button> }
+      </div>
+
+      <label class="label">Payment method</label>
+      <div class="chips">
+        @for (m of methods; track m) {
+          <button class="chip" type="button" [class.chip--active]="method() === m" (click)="method.set(m)">{{ m }}</button>
+        }
+      </div>
+
+      <label class="label">Paid on</label>
+      <input class="input" type="date" [max]="today" [ngModel]="paidDate()" (ngModelChange)="paidDate.set($event)" />
+
+      @if (isPart()) {
+        <p class="rp__hint">Saved as a <b>part payment</b>. ₹{{ balance() - amount() | inr }} will still be pending.</p>
+      }
+      @if (error()) { <p class="form-error" role="alert"><app-icon name="alert" [size]="14" /> {{ error() }}</p> }
+
+      <div class="modal__foot">
+        <button class="btn btn--soft" type="button" (click)="closed.emit()">Cancel</button>
+        <button class="btn" [class.btn--loading]="saving()" type="button" (click)="save()">
+          @if (saving()) { <span class="spin"></span> Saving… } @else { Save Payment }
+        </button>
+      </div>
+    </div>
+  </div>
+}

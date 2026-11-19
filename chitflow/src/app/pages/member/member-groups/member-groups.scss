@@ -1,0 +1,59 @@
+@use 'global' as *;
+:host { display: block; }
+
+// Light summary card (calm, no big orange block)
+.summary {
+  margin-bottom: 16px; padding: 16px; border-radius: 22px; background: $card; border: 1.5px solid $line; box-shadow: $shadow-card;
+  animation: fade-up 0.5s $ease-out backwards 0.05s;
+
+  &__head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  &__icon { width: 46px; height: 46px; border-radius: 16px; background: $gradient; color: $white; display: flex; align-items: center; justify-content: center; box-shadow: $shadow-glow; }
+  &__label { display: block; font-size: 11px; color: $muted; font-weight: 600; }
+  &__value { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1.15; }
+
+  &__tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  &__tile {
+    --c: #f26a1b; display: flex; flex-direction: column; gap: 2px; padding: 11px 12px; border-radius: 16px;
+    color: var(--c); background: color-mix(in srgb, var(--c) 11%, transparent); border: 1px solid color-mix(in srgb, var(--c) 28%, transparent);
+    b { font-size: 18px; color: $text; letter-spacing: -0.02em; margin-top: 4px; }
+    span { font-size: 10px; color: $muted; font-weight: 600; }
+    &--purple { --c: #6c55d9; }
+    &--green { --c: #1b9a55; }
+  }
+}
+
+
+.gc {
+  padding: 0; overflow: hidden; border-radius: 22px;
+  // clearly visible border in the group's own colour
+  border: 1.5px solid color-mix(in srgb, var(--accent) 40%, var(--cf-line));
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    $card;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 12%, transparent);
+  transition: transform 0.25s $ease-out, box-shadow 0.25s $ease-out, border-color 0.25s;
+  &:hover { border-color: var(--accent); box-shadow: 0 12px 26px color-mix(in srgb, var(--accent) 24%, transparent); }
+
+  &__top { display: flex; align-items: center; gap: 14px; padding: 16px 16px 14px; }
+  &__title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  &__name { display: flex; align-items: center; gap: 8px; b { font-size: 14px; @include truncate; } }
+  &__tag { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 8px; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); white-space: nowrap; }
+  &__label { font-size: 10px; color: $muted; margin-top: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
+  &__amount { font-size: 22px; letter-spacing: -0.03em; line-height: 1.1; }
+
+  &__stats {
+    display: grid; grid-template-columns: repeat(3, 1fr); margin: 0 14px; border-radius: 14px; background: $surface; border: 1px solid $line;
+    div { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; &:not(:last-child) { border-right: 1px solid $line; } }
+    span { font-size: 10px; color: $muted; }
+    b { font-size: 13px; }
+  }
+
+  &__foot { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding: 11px 16px; font-size: 11px; border-top: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--cf-line)); }
+  &__when { display: flex; align-items: center; gap: 6px; color: $muted; font-weight: 600; app-icon { color: var(--accent); } }
+  &__go { display: flex; align-items: center; gap: 4px; color: $primary; font-weight: 700; transition: gap 0.25s $ease-out; }
+  &:hover &__go { gap: 8px; }
+}
+
+.gc__dates { display: flex; align-items: center; gap: 8px; margin: 12px 14px 0; font-size: 10px; color: $muted; i { flex: 1; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--accent), $line); } }
+.gc__pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.groups-list { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); .card { margin-bottom: 0; } }

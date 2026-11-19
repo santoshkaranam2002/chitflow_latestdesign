@@ -1,0 +1,13 @@
+<a class="card row member-item" routerLink="/members/details" [queryParams]="{ id: member().id }">
+  <div class="row-gap">
+    <app-avatar [photo]="member().photo" [initials]="member().initials" [color]="color()" />
+    <div class="member-item__info">
+      <b class="member-item__name">{{ member().name }}</b>
+      <span class="muted">Member No: {{ member().code }}</span>
+    </div>
+  </div>
+  <span class="row-gap member-item__end">
+    <span class="pill" [ngClass]="pill()">{{ status() }}</span>
+    <span class="muted member-item__chev"><app-icon name="chev" [size]="16" /></span>
+  </span>
+</a>

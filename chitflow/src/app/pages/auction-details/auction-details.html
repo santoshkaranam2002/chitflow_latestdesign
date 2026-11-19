@@ -1,0 +1,49 @@
+@if (auction(); as a) {
+  <app-page-header title="Auction Details" [subtitle]="group()?.name ?? ''">
+    @if (a.status === 'Upcoming') {
+      <a class="icon-btn" routerLink="/auctions/add" [queryParams]="{ id: a.id }" aria-label="Edit auction"><app-icon name="pencil" [size]="20" /></a>
+    }
+    @if (a.status !== 'Live') {
+      <button class="icon-btn" type="button" [disabled]="busy()" (click)="remove()" aria-label="Delete auction"><app-icon name="trash" [size]="20" /></button>
+    }
+  </app-page-header>
+
+  <div class="hero row-gap auction-hero">
+    <span class="hero__sheen"></span>
+    <div class="auction-hero__icon"><app-icon [name]="tone().icon" [size]="28" /></div>
+    <div class="auction-hero__text"><b class="auction-hero__name">{{ group()?.name }} • {{ a.label }}</b><b class="auction-hero__amount">₹{{ group()?.chitValue | inr }}</b></div>
+    <span class="pill auction-hero__status" [ngClass]="pill(a.status)">{{ a.status }}</span>
+  </div>
+
+  @if (a.status === 'Upcoming') {
+    <div class="auction-count">
+      @for (p of parts(); track p.label; let i = $index) {
+        <div [style.--i]="i"><b>{{ p.value }}</b><span>{{ p.label }}</span></div>
+      }
+    </div>
+  }
+
+  <div class="card card--static">
+    @for (r of info(); track r.label) {
+      <div class="info-row"><span>{{ r.label }}</span><b>{{ r.value }}</b></div>
+    }
+    <div class="info-row"><span>Status</span><span class="pill" [ngClass]="pill(a.status)">{{ a.status }}</span></div>
+  </div>
+
+  <div class="spacer"></div>
+  @switch (a.status) {
+    @case ('Upcoming') {
+      <button class="btn" [class.btn--loading]="busy()" type="button" (click)="open()"><app-icon name="gavel" [size]="18" /> Open Auction for Bidding</button>
+    }
+    @case ('Live') {
+      <a class="btn" routerLink="/auctions/live" [queryParams]="{ id: a.id }"><app-icon name="gavel" [size]="18" /> Open Live Room</a>
+    }
+    @default {
+      <a class="btn" routerLink="/auctions/result" [queryParams]="{ id: a.id }"><app-icon name="trophy" [size]="18" /> {{ a.status === 'Pending Confirmation' ? 'Review & Confirm Result' : 'View Result' }}</a>
+    }
+  }
+} @else {
+  <app-page-header title="Auction Details" />
+  <app-empty-state icon="gavel" title="Auction not found" text="It may have been deleted." />
+  <a class="btn" routerLink="/auctions">Back to Auctions</a>
+}

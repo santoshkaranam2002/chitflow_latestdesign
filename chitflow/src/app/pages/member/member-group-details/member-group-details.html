@@ -1,0 +1,72 @@
+<app-page-header title="Group Details" [subtitle]="group()?.name ?? ''" />
+
+@if (group(); as g) {
+  <div class="hero gd-hero">
+    <span class="hero__sheen"></span>
+    <div class="row-gap">
+      <app-icon-tile [icon]="tone().icon" bg="#ffffff" color="#f26a1b" [size]="52" />
+      <div class="gd-hero__title">
+        <b>{{ g.name }}</b>
+        <small>Chit No. {{ ms()?.chitNumber ?? '—' }}</small>
+      </div>
+      <app-progress-ring [value]="progress()" [size]="64" [thickness]="7" [light]="true" />
+    </div>
+    <div class="gd-hero__amount"><small>Total chit amount</small><b>₹{{ g.chitValue | inr }}</b></div>
+    <div class="gd-hero__stats">
+      <div><small>Monthly</small><b>₹{{ g.monthlyInstallment | inr }}</b></div>
+      <div><small>Members</small><b>{{ g.totalMembers }}</b></div>
+      <div><small>Month</small><b>{{ g.currentMonth }}/{{ g.durationMonths }}</b></div>
+    </div>
+  </div>
+
+  <div class="card card--static gd-info">
+    <div class="info-row"><span>My status</span><b>{{ state() }}</b></div>
+    <div class="info-row"><span>Group status</span><b>{{ g.status }}</b></div>
+    <div class="info-row"><span>Joined on</span><b>{{ ms()?.joinedOn ? fmt(ms()!.joinedOn) : 'Unavailable' }}</b></div>
+    <div class="info-row"><span>Started on</span><b>{{ g.startDate ? fmt(g.startDate) : '—' }}</b></div>
+    <div class="info-row"><span>Matures on</span><b>{{ maturity() ? fmt(maturity()) : '—' }}</b></div>
+    <div class="info-row"><span>Next auction</span>
+      @if (liveOrNext(); as a) { <b>{{ a.scheduledDate | date: 'dd MMM yyyy' }}, {{ a.startTime }}</b> } @else { <b>Not scheduled</b> }
+    </div>
+    @if (liveOrNext(); as a) {
+      <div class="info-row"><span>Auction status</span><span class="pill" [ngClass]="pill(a.status)">{{ a.status }}</span></div>
+    }
+  </div>
+
+  <div class="gd-cols">
+    <div>
+      <div class="row section-title"><span>My Payments</span><span class="muted">{{ paidCount() }}/{{ payments().length }} paid</span></div>
+      @for (p of payments(); track p.id; let i = $index) {
+        <div class="card card--static row reveal" [style.--i]="i">
+          <div class="row-gap">
+            <app-icon-tile [icon]="st(p) === 'Paid' ? 'up' : 'clock'" [bg]="st(p) === 'Paid' ? '#dcf5e6' : st(p) === 'Overdue' ? '#fde2e2' : '#ffe7d1'" [color]="st(p) === 'Paid' ? '#1b8a4b' : st(p) === 'Overdue' ? '#e5432d' : '#d9730d'" />
+            <div class="gd-item"><b>Month {{ p.monthIndex }}</b><span class="muted">{{ p.transactionId || ('Due ' + fmt(p.dueDate)) }}</span></div>
+          </div>
+          <div class="gd-item gd-item--end">
+            <b>₹{{ p.amount | inr }}</b>
+            <span class="pill" [ngClass]="payClass(st(p))">{{ st(p) === 'Partial' ? 'Part paid' : st(p) }}</span>
+          </div>
+        </div>
+      } @empty { <div class="card card--static gd-empty">No payments yet</div> }
+    </div>
+
+    <div>
+      <div class="section-title">Previous Auction Results</div>
+      @for (a of results(); track a.id; let i = $index) {
+        <div class="card card--static row reveal" [style.--i]="i">
+          <div class="row-gap">
+            <app-icon-tile icon="trophy" bg="#fff0c9" color="#d99a06" />
+            <div class="gd-item"><b>Month {{ a.monthIndex }} · {{ winners()[a.id] || '…' }}</b><span class="muted">{{ a.scheduledDate | date: 'dd MMM yyyy' }}</span></div>
+          </div>
+          <div class="gd-item gd-item--end"><b>₹{{ a.winningBid ?? 0 | inr }}</b><span class="muted">Winning bid</span></div>
+        </div>
+      } @empty { <div class="card card--static gd-empty">No auctions completed yet</div> }
+    </div>
+  </div>
+} @else {
+  <div class="card card--static gd-empty gd-none">
+    <app-icon name="shield" [size]="34" />
+    <b>Group not available</b>
+    <span class="muted">You are not registered in this chit group.</span>
+  </div>
+}
